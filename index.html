@@ -187,7 +187,7 @@
       <section>
         <label for="htmlInput">
           HTML 입력
-          <span class="hint"><code>.tui-editor-contents</code>가 있으면 자동 추출</span>
+          <span class="hint">본문 후보를 자동 추출하고 잡음을 정리합니다</span>
         </label>
         <textarea id="htmlInput" spellcheck="false" placeholder="Copy element 한 HTML을 여기에 붙여넣으세요."></textarea>
       </section>
@@ -204,10 +204,26 @@
     <div id="status" class="status" role="status"></div>
   </main>
 
+  <script src="https://unpkg.com/turndown@7.2.0/dist/turndown.js"></script>
   <script>
     const htmlInput = document.querySelector("#htmlInput");
     const markdownOutput = document.querySelector("#markdownOutput");
     const statusLine = document.querySelector("#status");
+
+    const contentSelectors = [
+      ".tui-editor-contents",
+      ".notion-page-content",
+      ".markdown-body",
+      ".prose",
+      ".post-content",
+      ".entry-content",
+      ".article-content",
+      "[data-sourcepos]",
+      "[role='main']",
+      "article",
+      "main",
+      ".content"
+    ];
 
     const blockTags = new Set([
       "ADDRESS", "ARTICLE", "ASIDE", "BLOCKQUOTE", "DIV", "DL", "FIELDSET",
@@ -231,9 +247,62 @@
 
     function normalizeBlankLines(markdown) {
       return markdown
+        .replace(/\n[ \t]*\n[ \t]*([*-]\s)/g, "\n$1")
         .replace(/[ \t]+\n/g, "\n")
         .replace(/\n{3,}/g, "\n\n")
         .replace(/^\s+|\s+$/g, "");
+    }
+
+    function escapeTableCell(text) {
+      return normalizeBlankLines(text).replace(/\|/g, "\\|").replace(/\n/g, "<br>");
+    }
+
+    function createTurndownService() {
+      if (!window.TurndownService) return null;
+
+      const service = new TurndownService({
+        headingStyle: "atx",
+        codeBlockStyle: "fenced",
+        bulletListMarker: "-",
+        emDelimiter: "*"
+      });
+
+      service.addRule("strikethrough", {
+        filter: ["del", "s", "strike"],
+        replacement(content) {
+          return content ? `~~${content}~~` : "";
+        }
+      });
+
+      service.addRule("taskListItems", {
+        filter(node) {
+          return node.nodeName === "LI"
+            && (node.classList.contains("task-list-item") || node.hasAttribute("data-te-task"));
+        },
+        replacement(content, node) {
+          const checked = node.hasAttribute("data-te-checked") || node.querySelector("input:checked");
+          return `- [${checked ? "x" : " "}] ${content.trim()}\n`;
+        }
+      });
+
+      service.addRule("tables", {
+        filter: "table",
+        replacement(content, node) {
+          const rows = Array.from(node.querySelectorAll("tr")).map((row) =>
+            Array.from(row.children).map((cell) => escapeTableCell(service.turndown(cell.innerHTML)))
+          );
+
+          if (!rows.length) return "";
+
+          const header = rows[0];
+          const separator = header.map(() => "---");
+          return `\n\n${[header, separator, ...rows.slice(1)]
+            .map((row) => `| ${row.join(" | ")} |`)
+            .join("\n")}\n\n`;
+        }
+      });
+
+      return service;
     }
 
     function inlineChildren(node) {
@@ -364,12 +433,120 @@
       return content;
     }
 
+    function scoreContentCandidate(node) {
+      const textLength = normalizeBlankLines(node.textContent || "").length;
+      const headings = node.querySelectorAll("h1, h2, h3, h4, h5, h6").length;
+      const paragraphs = node.querySelectorAll("p, li, blockquote, pre, table, [data-root='true']").length;
+      const media = node.querySelectorAll("img[src]:not([src^='data:image/gif'])").length;
+      const noise = node.querySelectorAll("nav, footer, form, button, aside, [role='navigation']").length;
+
+      return textLength + headings * 220 + paragraphs * 80 + media * 30 - noise * 160;
+    }
+
     function extractContent(doc) {
-      return doc.querySelector(".tui-editor-contents")
-        || doc.querySelector("[data-sourcepos]")
-        || doc.querySelector("article")
-        || doc.querySelector("main")
-        || doc.body;
+      for (const selector of contentSelectors) {
+        const match = doc.querySelector(selector);
+        if (match && normalizeBlankLines(match.textContent || "").length > 0) return match;
+      }
+
+      const candidates = Array.from(doc.body.querySelectorAll("article, main, section, div"))
+        .filter((node) => normalizeBlankLines(node.textContent || "").length >= 80)
+        .sort((a, b) => scoreContentCandidate(b) - scoreContentCandidate(a));
+
+      return candidates[0] || doc.body;
+    }
+
+    function removeInvisibleAndEmptyNoise(root) {
+      root.querySelectorAll("[style]").forEach((node) => {
+        const style = node.getAttribute("style") || "";
+        if (
+          /display\s*:\s*none/i.test(style)
+          || /visibility\s*:\s*hidden/i.test(style)
+          || /opacity\s*:\s*0(?:[;)]|$)/i.test(style)
+        ) {
+          node.remove();
+        }
+      });
+
+      root.querySelectorAll("div, span").forEach((node) => {
+        const hasMeaningfulMedia = node.querySelector("img[src]:not([src^='data:image/gif']), video, iframe");
+        if (!hasMeaningfulMedia && !normalizeBlankLines(node.textContent || "")) node.remove();
+      });
+    }
+
+    function cleanupNotionBlocks(root) {
+      root.querySelectorAll(".notion-text-block").forEach((block) => {
+        const source = block.querySelector("[data-root='true']") || block;
+        if (!normalizeBlankLines(source.textContent || "") && !source.querySelector("img[src]:not([src^='data:image/gif'])")) {
+          block.remove();
+          return;
+        }
+
+        const paragraph = document.createElement("p");
+        paragraph.innerHTML = source.innerHTML;
+        block.replaceWith(paragraph);
+      });
+
+      root.querySelectorAll(".notion-header-block h1, .notion-header-block h2, .notion-header-block h3, .notion-sub_header-block h1, .notion-sub_header-block h2, .notion-sub_header-block h3").forEach((heading) => {
+        const block = heading.closest(".notion-header-block, .notion-sub_header-block");
+        if (block) block.replaceWith(heading.cloneNode(true));
+      });
+
+      root.querySelectorAll(".notion-link-token[href^='/']").forEach((link) => {
+        const href = link.getAttribute("href");
+        if (href) link.setAttribute("href", href);
+      });
+    }
+
+    function cleanupContent(content) {
+      const root = content.cloneNode(true);
+
+      root.querySelectorAll([
+        "script",
+        "style",
+        "noscript",
+        "svg",
+        "canvas",
+        "nav",
+        "form",
+        "button",
+        "[role='navigation']",
+        "[aria-hidden='true']",
+        ".oopy-footer",
+        ".apply_button",
+        ".notion-emoji",
+        ".css-ujcdi3",
+        "[class*='footer']",
+        "[class*='Footer']",
+        "[class*='advert']",
+        "[class*='share']"
+      ].join(",")).forEach((node) => node.remove());
+
+      root.querySelectorAll("img[src^='data:image/gif']").forEach((img) => img.remove());
+      cleanupNotionBlocks(root);
+      removeInvisibleAndEmptyNoise(root);
+
+      root.querySelectorAll("[contenteditable], [spellcheck], [placeholder], [style], [class]").forEach((node) => {
+        node.removeAttribute("contenteditable");
+        node.removeAttribute("spellcheck");
+        node.removeAttribute("placeholder");
+        node.removeAttribute("style");
+        node.removeAttribute("class");
+      });
+
+      return root;
+    }
+
+    function sourceLabel(content) {
+      const selector = contentSelectors.find((selector) => content.matches(selector));
+      return selector || content.tagName.toLowerCase();
+    }
+
+    function convertWithTurndown(content) {
+      const service = createTurndownService();
+      if (!service) return "";
+
+      return normalizeBlankLines(service.turndown(cleanupContent(content)));
     }
 
     function convert() {
@@ -382,9 +559,10 @@
 
       const doc = new DOMParser().parseFromString(html, "text/html");
       const content = extractContent(doc);
-      markdownOutput.value = normalizeBlankLines(toMarkdown(content));
-      const source = content.classList.contains("tui-editor-contents") ? ".tui-editor-contents" : content.tagName.toLowerCase();
-      statusLine.textContent = `${source} 기준으로 변환했습니다.`;
+      const turndownMarkdown = convertWithTurndown(content);
+
+      markdownOutput.value = turndownMarkdown || normalizeBlankLines(toMarkdown(cleanupContent(content)));
+      statusLine.textContent = `${sourceLabel(content)} 기준으로 변환했습니다.`;
     }
 
     async function copyMarkdown() {

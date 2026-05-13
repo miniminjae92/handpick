@@ -14,15 +14,25 @@ F12 개발자 도구에서 `Copy element`로 복사한 HTML을 Markdown으로 �
 
 ## 본문 추출 기준
 
-입력 HTML 안에서 아래 순서로 변환할 본문을 찾습니다.
+입력 HTML 안에서 주요 본문 후보를 우선순위로 찾고, 후보가 없으면 텍스트와 제목이 많은 영역을 자동으로 고릅니다.
 
 1. `.tui-editor-contents`
-2. `[data-sourcepos]`
-3. `article`
-4. `main`
-5. `body`
+2. `.notion-page-content`
+3. `.markdown-body`, `.prose`, `.post-content`, `.entry-content`, `.article-content`
+4. `[data-sourcepos]`, `[role="main"]`
+5. `article`, `main`, `.content`
 
-`.tui-editor-contents`가 있는 HTML은 해당 영역만 자동으로 추출합니다.
+`.tui-editor-contents`나 `.notion-page-content`가 있는 HTML은 해당 영역을 우선 추출합니다.
+
+## 변환 방식
+
+기본 HTML -> Markdown 변환은 Turndown을 사용합니다. 변환 전에 Notion/Oopy처럼 화면용 `div`와 `span`이 많은 HTML에서 불필요한 요소를 정리합니다.
+
+- 투명 `data:image/gif` 이모지 placeholder 제거
+- Notion 텍스트 블록을 문단처럼 정리
+- Notion 제목 블록을 제목 요소로 정리
+- `script`, `style`, `nav`, `footer`, 버튼, 폼, 광고/공유 영역 제거
+- 표와 task list 항목 보정
 
 ## 지원하는 변환
 
