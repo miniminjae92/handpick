@@ -8,9 +8,13 @@ F12 개발자 도구에서 `Copy element`로 복사한 HTML을 Markdown으로 �
 
 1. 변환하려는 웹페이지에서 개발자 도구를 엽니다.
 2. Elements 탭에서 본문 영역을 선택합니다.
-3. 선택한 요소를 우클릭한 뒤 `Copy` -> `Copy element`를 선택합니다.
+3. 선택한 요소를 우클릭한 뒤 `Copy` -> `Copy element`를 선택합니다. (우클릭 없이 `Ctrl + c` or `Cmd + c`도 가능합니다.)
 4. 이 도구의 `HTML 입력` 칸에 붙여넣습니다.
 5. 자동 변환된 Markdown을 복사하거나 `.md` 파일로 저장합니다.
+
+## 시연 영상
+
+<img src="./assets/demo.gif" width="600">
 
 ## 본문 추출 기준
 
