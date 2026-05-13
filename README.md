@@ -12,9 +12,9 @@ F12 개발자 도구에서 `Copy element`로 복사한 HTML을 Markdown으로 �
 4. 이 도구의 `HTML 입력` 칸에 붙여넣습니다.
 5. 자동 변환된 Markdown을 복사하거나 `.md` 파일로 저장합니다.
 
-## 시연 영상
+## 데모 영상
 
-<video src="./assets/demo.mp4" width="100%" controls></video>
+[데모 영상 보기](https://github.com/user-attachments/assets/e898b235-fadf-422d-829c-ef2662abb14d)
 
 ## 본문 추출 기준
 
