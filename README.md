@@ -14,7 +14,9 @@ F12 개발자 도구에서 `Copy element`로 복사한 HTML을 Markdown으로 �
 
 ## 시연 영상
 
-<video src="https://github.com/miniminjae92/f12-copy-elements-to-md/raw/main/assets/demo.mp4" width="600" autoplay loop muted playsinline></video>
+## 시연 영상
+
+[시연 영상 보기](https://github.com/user-attachments/assets/51eba18d-a08a-47c0-ace8-b141ade7c76b)
 
 ## 본문 추출 기준
 
