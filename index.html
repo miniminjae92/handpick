@@ -498,8 +498,26 @@
       });
     }
 
+    function preserveTextualMediaFallbacks(root) {
+      root.querySelectorAll(".notion-emoji").forEach((node) => {
+        const emoji = normalizeBlankLines(node.textContent || "")
+          || node.getAttribute("alt")
+          || node.getAttribute("aria-label")
+          || node.getAttribute("title");
+
+        node.replaceWith(document.createTextNode(emoji || ""));
+      });
+
+      root.querySelectorAll("img[src^='data:image/gif']").forEach((img) => {
+        const alt = img.getAttribute("alt");
+        img.replaceWith(document.createTextNode(alt || ""));
+      });
+    }
+
     function cleanupContent(content) {
       const root = content.cloneNode(true);
+
+      preserveTextualMediaFallbacks(root);
 
       root.querySelectorAll([
         "script",
@@ -514,7 +532,6 @@
         "[aria-hidden='true']",
         ".oopy-footer",
         ".apply_button",
-        ".notion-emoji",
         ".css-ujcdi3",
         "[class*='footer']",
         "[class*='Footer']",
@@ -522,7 +539,6 @@
         "[class*='share']"
       ].join(",")).forEach((node) => node.remove());
 
-      root.querySelectorAll("img[src^='data:image/gif']").forEach((img) => img.remove());
       cleanupNotionBlocks(root);
       removeInvisibleAndEmptyNoise(root);
 

@@ -32,7 +32,7 @@ F12 개발자 도구에서 `Copy element`로 복사한 HTML을 Markdown으로 �
 
 기본 HTML -> Markdown 변환은 Turndown을 사용합니다. 변환 전에 Notion/Oopy처럼 화면용 `div`와 `span`이 많은 HTML에서 불필요한 요소를 정리합니다.
 
-- 투명 `data:image/gif` 이모지 placeholder 제거
+- Notion 이모지와 투명 `data:image/gif` placeholder의 텍스트/alt 보존
 - Notion 텍스트 블록을 문단처럼 정리
 - Notion 제목 블록을 제목 요소로 정리
 - `script`, `style`, `nav`, `footer`, 버튼, 폼, 광고/공유 영역 제거
