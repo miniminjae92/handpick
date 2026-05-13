@@ -1,4 +1,4 @@
-# F12 Copy Element to Markdown
+# F12 Copy Elements to MD
 
 F12 개발자 도구에서 `Copy element`로 복사한 HTML을 Markdown으로 변환하는 단일 페이지 도구입니다.
 
