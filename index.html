@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>F12 Copy Element to Markdown</title>
+  <meta name="description" content="F12에서 Copy element 한 HTML을 Markdown으로 변환하는 브라우저 전용 도구입니다.">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #667085;
+      --line: #d7dce3;
+      --accent: #0f766e;
+      --accent-strong: #115e59;
+      --code: #eef2f5;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    main {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 28px 0;
+    }
+
+    header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 28px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    button {
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      padding: 0 14px;
+      font: inherit;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    button.primary {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    button:hover {
+      border-color: var(--accent-strong);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    section {
+      min-width: 0;
+    }
+
+    label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .hint {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 68vh;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      padding: 14px;
+      font: 14px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      tab-size: 2;
+    }
+
+    textarea:focus {
+      outline: 3px solid rgba(15, 118, 110, 0.18);
+      border-color: var(--accent);
+    }
+
+    .status {
+      min-height: 22px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    code {
+      border-radius: 5px;
+      background: var(--code);
+      padding: 2px 5px;
+      color: #344054;
+      font-size: 0.95em;
+    }
+
+    @media (max-width: 820px) {
+      header {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .actions {
+        justify-content: stretch;
+      }
+
+      button {
+        flex: 1 1 150px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      textarea {
+        min-height: 46vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>F12 Copy Element to Markdown</h1>
+        <p>F12에서 Copy element 한 HTML을 붙여넣으면 본문을 골라 Markdown으로 바꿉니다.</p>
+      </div>
+      <div class="actions">
+        <button id="convertButton" class="primary" type="button">변환</button>
+        <button id="copyButton" type="button">복사</button>
+        <button id="downloadButton" type="button">MD 저장</button>
+        <button id="clearButton" type="button">비우기</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section>
+        <label for="htmlInput">
+          HTML 입력
+          <span class="hint"><code>.tui-editor-contents</code>가 있으면 자동 추출</span>
+        </label>
+        <textarea id="htmlInput" spellcheck="false" placeholder="Copy element 한 HTML을 여기에 붙여넣으세요."></textarea>
+      </section>
+
+      <section>
+        <label for="markdownOutput">
+          Markdown 출력
+          <span class="hint">그대로 README.md 등에 붙여넣기</span>
+        </label>
+        <textarea id="markdownOutput" spellcheck="false" placeholder="변환 결과가 여기에 표시됩니다."></textarea>
+      </section>
+    </div>
+
+    <div id="status" class="status" role="status"></div>
+  </main>
+
+  <script>
+    const htmlInput = document.querySelector("#htmlInput");
+    const markdownOutput = document.querySelector("#markdownOutput");
+    const statusLine = document.querySelector("#status");
+
+    const blockTags = new Set([
+      "ADDRESS", "ARTICLE", "ASIDE", "BLOCKQUOTE", "DIV", "DL", "FIELDSET",
+      "FIGCAPTION", "FIGURE", "FOOTER", "FORM", "H1", "H2", "H3", "H4", "H5",
+      "H6", "HEADER", "HR", "LI", "MAIN", "NAV", "OL", "P", "PRE", "SECTION",
+      "TABLE", "UL"
+    ]);
+
+    function collapseWhitespace(text) {
+      return text.replace(/\s+/g, " ");
+    }
+
+    function escapeMarkdown(text) {
+      return text
+        .replace(/\\/g, "\\\\")
+        .replace(/\*/g, "\\*")
+        .replace(/_/g, "\\_")
+        .replace(/\[/g, "\\[")
+        .replace(/\]/g, "\\]");
+    }
+
+    function normalizeBlankLines(markdown) {
+      return markdown
+        .replace(/[ \t]+\n/g, "\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .replace(/^\s+|\s+$/g, "");
+    }
+
+    function inlineChildren(node) {
+      return Array.from(node.childNodes).map((child) => toMarkdown(child, { inline: true })).join("");
+    }
+
+    function blockChildren(node, context = {}) {
+      return Array.from(node.childNodes)
+        .map((child) => toMarkdown(child, context))
+        .filter(Boolean)
+        .join("\n\n");
+    }
+
+    function indentLines(text, prefix) {
+      return text
+        .split("\n")
+        .map((line) => line ? `${prefix}${line}` : prefix.trimEnd())
+        .join("\n");
+    }
+
+    function listItems(node, ordered) {
+      let index = Number(node.getAttribute("start") || "1");
+      return Array.from(node.children)
+        .filter((child) => child.tagName === "LI")
+        .map((li) => {
+          const marker = ordered ? `${index++}. ` : "- ";
+          const converted = liToMarkdown(li);
+          const lines = converted.split("\n");
+          const first = `${marker}${lines.shift() || ""}`;
+          const pad = " ".repeat(marker.length);
+          return [first, ...lines.map((line) => line ? `${pad}${line}` : "")].join("\n");
+        })
+        .join("\n");
+    }
+
+    function liToMarkdown(li) {
+      const parts = [];
+
+      for (const child of li.childNodes) {
+        if (child.nodeType === Node.ELEMENT_NODE && ["UL", "OL"].includes(child.tagName)) {
+          const nested = toMarkdown(child);
+          if (nested) parts.push(`\n${indentLines(nested, "  ")}`);
+          continue;
+        }
+
+        const converted = toMarkdown(child, { inline: true });
+        if (converted) parts.push(converted);
+      }
+
+      const text = parts.join("").replace(/\n{3,}/g, "\n\n").trim();
+      if (li.classList.contains("task-list-item") || li.hasAttribute("data-te-task")) {
+        return `[ ] ${text}`;
+      }
+      return text;
+    }
+
+    function tableToMarkdown(table) {
+      const rows = Array.from(table.querySelectorAll("tr")).map((row) =>
+        Array.from(row.children).map((cell) => normalizeBlankLines(inlineChildren(cell)).replace(/\|/g, "\\|"))
+      );
+
+      if (!rows.length) return "";
+
+      const header = rows[0];
+      const separator = header.map(() => "---");
+      const body = rows.slice(1);
+      return [header, separator, ...body]
+        .map((row) => `| ${row.join(" | ")} |`)
+        .join("\n");
+    }
+
+    function toMarkdown(node, context = {}) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = context.preserveWhitespace ? node.textContent : collapseWhitespace(node.textContent);
+        return escapeMarkdown(text);
+      }
+
+      if (node.nodeType !== Node.ELEMENT_NODE) return "";
+
+      const tag = node.tagName;
+      const inline = context.inline;
+
+      if (tag === "SCRIPT" || tag === "STYLE" || tag === "NOSCRIPT") return "";
+      if (tag === "BR") return inline ? "  \n" : "\n";
+      if (tag === "HR") return "---";
+      if (tag === "STRONG" || tag === "B") return `**${inlineChildren(node).trim()}**`;
+      if (tag === "EM" || tag === "I") return `*${inlineChildren(node).trim()}*`;
+      if (tag === "S" || tag === "DEL") return `~~${inlineChildren(node).trim()}~~`;
+
+      if (tag === "CODE") {
+        const text = node.textContent.replace(/`/g, "\\`");
+        return context.inPre ? text : `\`${text}\``;
+      }
+
+      if (tag === "PRE") {
+        const code = node.textContent.replace(/\n+$/g, "");
+        return `\`\`\`\n${code}\n\`\`\``;
+      }
+
+      if (tag === "A") {
+        const label = inlineChildren(node).trim() || node.href;
+        const href = node.getAttribute("href") || "";
+        return href ? `[${label}](${href})` : label;
+      }
+
+      if (tag === "IMG") {
+        const alt = node.getAttribute("alt") || "";
+        const src = node.getAttribute("src") || "";
+        return src ? `![${escapeMarkdown(alt)}](${src})` : "";
+      }
+
+      if (/^H[1-6]$/.test(tag)) {
+        const level = Number(tag.slice(1));
+        return `${"#".repeat(level)} ${inlineChildren(node).trim()}`;
+      }
+
+      if (tag === "P") return inlineChildren(node).trim();
+      if (tag === "BLOCKQUOTE") {
+        const content = blockChildren(node);
+        return content.split("\n").map((line) => line ? `> ${line}` : ">").join("\n");
+      }
+
+      if (tag === "UL" || tag === "OL") return listItems(node, tag === "OL");
+      if (tag === "TABLE") return tableToMarkdown(node);
+
+      const content = blockChildren(node);
+      if (inline || !blockTags.has(tag)) return inlineChildren(node);
+      return content;
+    }
+
+    function extractContent(doc) {
+      return doc.querySelector(".tui-editor-contents")
+        || doc.querySelector("[data-sourcepos]")
+        || doc.querySelector("article")
+        || doc.querySelector("main")
+        || doc.body;
+    }
+
+    function convert() {
+      const html = htmlInput.value.trim();
+      if (!html) {
+        markdownOutput.value = "";
+        statusLine.textContent = "HTML을 먼저 붙여넣어 주세요.";
+        return;
+      }
+
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const content = extractContent(doc);
+      markdownOutput.value = normalizeBlankLines(toMarkdown(content));
+      const source = content.classList.contains("tui-editor-contents") ? ".tui-editor-contents" : content.tagName.toLowerCase();
+      statusLine.textContent = `${source} 기준으로 변환했습니다.`;
+    }
+
+    async function copyMarkdown() {
+      if (!markdownOutput.value.trim()) convert();
+      if (!markdownOutput.value.trim()) return;
+      await navigator.clipboard.writeText(markdownOutput.value);
+      statusLine.textContent = "Markdown을 클립보드에 복사했습니다.";
+    }
+
+    function downloadMarkdown() {
+      if (!markdownOutput.value.trim()) convert();
+      if (!markdownOutput.value.trim()) return;
+
+      const firstHeading = markdownOutput.value.match(/^#\s+(.+)$/m);
+      const baseName = firstHeading ? firstHeading[1] : "converted";
+      const safeName = baseName.replace(/[\\/:*?"<>|]/g, "").replace(/\s+/g, "-").slice(0, 80) || "converted";
+      const blob = new Blob([markdownOutput.value + "\n"], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${safeName}.md`;
+      link.click();
+      URL.revokeObjectURL(url);
+      statusLine.textContent = `${safeName}.md 파일로 저장했습니다.`;
+    }
+
+    document.querySelector("#convertButton").addEventListener("click", convert);
+    document.querySelector("#copyButton").addEventListener("click", copyMarkdown);
+    document.querySelector("#downloadButton").addEventListener("click", downloadMarkdown);
+    document.querySelector("#clearButton").addEventListener("click", () => {
+      htmlInput.value = "";
+      markdownOutput.value = "";
+      statusLine.textContent = "";
+      htmlInput.focus();
+    });
+    htmlInput.addEventListener("paste", () => setTimeout(convert, 0));
+  </script>
+</body>
+</html>
