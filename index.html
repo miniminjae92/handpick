@@ -498,13 +498,82 @@
       });
     }
 
-    function preserveTextualMediaFallbacks(root) {
-      root.querySelectorAll(".notion-emoji").forEach((node) => {
-        const emoji = normalizeBlankLines(node.textContent || "")
-          || node.getAttribute("alt")
-          || node.getAttribute("aria-label")
-          || node.getAttribute("title");
+    function emojiFromCodepointSlug(value) {
+      if (!value) return "";
 
+      const slug = decodeURIComponent(value)
+        .split(/[/?#]/)
+        .pop()
+        .replace(/\.(?:svg|png|webp|gif)$/i, "")
+        .replace(/^emoji[_-]u?/i, "");
+
+      const codepoints = slug.split(/[-_]/)
+        .filter((part) => /^[0-9a-f]{4,6}$/i.test(part))
+        .map((part) => Number.parseInt(part, 16));
+
+      if (!codepoints.length || codepoints.some((codepoint) => !Number.isFinite(codepoint))) return "";
+
+      try {
+        return String.fromCodePoint(...codepoints);
+      } catch {
+        return "";
+      }
+    }
+
+    function emojiFromUrlLikeValue(value) {
+      if (!value) return "";
+
+      const urlMatch = value.match(/url\((['"]?)(.*?)\1\)/i);
+      const source = urlMatch ? urlMatch[2] : value;
+      const pathParts = source.split(/[/?#]/).filter(Boolean);
+
+      for (let index = pathParts.length - 1; index >= 0; index--) {
+        const emoji = emojiFromCodepointSlug(pathParts[index]);
+        if (emoji) return emoji;
+      }
+
+      return "";
+    }
+
+    function textFallbackFromAttributes(node) {
+      const attributes = ["alt", "aria-label", "title", "data-emoji", "data-icon"];
+      for (const attribute of attributes) {
+        const value = normalizeBlankLines(node.getAttribute(attribute) || "");
+        if (value) return value;
+      }
+
+      return "";
+    }
+
+    function emojiFallbackFromNode(node) {
+      const text = normalizeBlankLines(node.textContent || "");
+      if (text) return text;
+
+      const directFallback = textFallbackFromAttributes(node)
+        || emojiFromUrlLikeValue(node.getAttribute("src") || "")
+        || emojiFromUrlLikeValue(node.getAttribute("data-src") || "")
+        || emojiFromUrlLikeValue(node.getAttribute("style") || "");
+      if (directFallback) return directFallback;
+
+      const media = node.querySelector("img, span, div");
+      if (!media) return "";
+
+      return textFallbackFromAttributes(media)
+        || emojiFromUrlLikeValue(media.getAttribute("src") || "")
+        || emojiFromUrlLikeValue(media.getAttribute("data-src") || "")
+        || emojiFromUrlLikeValue(media.getAttribute("style") || "");
+    }
+
+    function preserveTextualMediaFallbacks(root) {
+      root.querySelectorAll([
+        ".notion-emoji",
+        "[class*='notion-emoji']",
+        "[class*='notion-page-icon']",
+        "img[src*='/emoji/']",
+        "img[src*='twemoji']",
+        "[role='img'][aria-label]"
+      ].join(",")).forEach((node) => {
+        const emoji = emojiFallbackFromNode(node);
         node.replaceWith(document.createTextNode(emoji || ""));
       });
 
