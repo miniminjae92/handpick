@@ -257,6 +257,146 @@
       return normalizeBlankLines(text).replace(/\|/g, "\\|").replace(/\n/g, "<br>");
     }
 
+    function textWithCodeLineBreaks(node) {
+      let text = "";
+
+      for (const child of node.childNodes) {
+        if (child.nodeType === Node.TEXT_NODE) {
+          text += child.textContent;
+          continue;
+        }
+
+        if (child.nodeType !== Node.ELEMENT_NODE) continue;
+
+        if (child.tagName === "BR") {
+          text += "\n";
+          continue;
+        }
+
+        text += textWithCodeLineBreaks(child);
+      }
+
+      return text;
+    }
+
+    function codeTextFromNode(node) {
+      const nestedCode = node.querySelector("pre code");
+      const directCode = Array.from(node.children).find((child) => child.tagName === "CODE");
+      const source = nestedCode || directCode || (node.matches("code") ? node : node.querySelector("code")) || node;
+      const text = textWithCodeLineBreaks(source);
+      return text || source.textContent || "";
+    }
+
+    function normalizeLanguageLabel(text) {
+      const label = normalizeBlankLines(text).toLowerCase();
+      if (!label) return "";
+      if (label === "json") return "json";
+      if (label === "http" || label === "https") return "http";
+      if (/^[a-z][a-z0-9_+-]*$/.test(label)) return label;
+      return "";
+    }
+
+    function languageFromCodeBlockChrome(node) {
+      const wrapper = node.closest("[class*='border-token-border-light']") || node.parentElement;
+      if (!wrapper) return "";
+
+      const label = wrapper.querySelector("[class*='text-token-text-primary']");
+      if (label) return normalizeLanguageLabel(label.textContent);
+
+      return "";
+    }
+
+    function languageFromGeminiCodeBlock(node) {
+      const label = node.querySelector(".code-block-decoration span");
+      if (label) return normalizeLanguageLabel(label.textContent);
+
+      return "";
+    }
+
+    function replaceWithSimpleCodeBlock(node, codeSource, language = "") {
+      const code = normalizeCodeBlockText(codeTextFromNode(codeSource), language);
+      const replacementPre = document.createElement("pre");
+      const replacementCode = document.createElement("code");
+
+      if (language) replacementCode.className = `language-${language}`;
+      replacementCode.textContent = code;
+      replacementPre.append(replacementCode);
+      node.replaceWith(replacementPre);
+    }
+
+    function chatGptCodeBlockWrapper(viewer, root) {
+      let candidate = null;
+
+      for (let node = viewer; node && node !== root; node = node.parentElement) {
+        if (node.tagName === "PRE") return node;
+        if (
+          node.querySelectorAll
+          && node.querySelectorAll(".cm-editor, #code-block-viewer").length === 1
+          && node.querySelector("pre code")
+        ) {
+          candidate = node;
+        }
+      }
+
+      return candidate || viewer;
+    }
+
+    function normalizeRichCodeBlocks(root) {
+      root.querySelectorAll("code-block").forEach((codeBlock) => {
+        const codePre = codeBlock.querySelector("pre");
+        if (!codePre) return;
+
+        replaceWithSimpleCodeBlock(codeBlock, codePre, languageFromGeminiCodeBlock(codeBlock));
+      });
+
+      root.querySelectorAll(".cm-editor, #code-block-viewer").forEach((viewer) => {
+        const codePre = viewer.querySelector("pre");
+        if (!codePre) return;
+
+        const language = languageFromCodeBlockChrome(viewer);
+        replaceWithSimpleCodeBlock(chatGptCodeBlockWrapper(viewer, root), codePre, language);
+      });
+    }
+
+    function codeLanguageFromNode(node) {
+      const dataLanguage = node.getAttribute("data-code-language") || node.querySelector("[data-code-language]")?.getAttribute("data-code-language");
+      if (dataLanguage) return dataLanguage;
+
+      const code = node.matches("code") ? node : node.querySelector("code");
+      const candidates = [node, code].filter(Boolean);
+
+      for (const candidate of candidates) {
+        const className = candidate.getAttribute("class") || "";
+        const match = className.match(/(?:^|\s)(?:language|lang)-([a-z0-9_-]+)/i);
+        if (match) return match[1].toLowerCase();
+      }
+
+      return "";
+    }
+
+    function normalizeCodeBlockText(text, language = "") {
+      const code = text.replace(/\u00a0/g, " ").replace(/\n+$/g, "");
+      const trimmed = code.trim();
+      const looksJson = language === "json" || /^[{\[][\s\S]*[}\]]$/.test(trimmed);
+
+      if (looksJson) {
+        try {
+          return JSON.stringify(JSON.parse(trimmed), null, 2);
+        } catch {
+          return code;
+        }
+      }
+
+      return code;
+    }
+
+    function fencedCodeBlock(code, language = "") {
+      const longestFence = Math.max(2, ...Array.from(code.matchAll(/`+/g), (match) => match[0].length));
+      const fence = "`".repeat(Math.max(3, longestFence + 1));
+      const info = language ? language.replace(/[` \t\r\n]/g, "") : "";
+      return `${fence}${info}\n${code}\n${fence}`;
+    }
+
     function createTurndownService() {
       if (!window.TurndownService) return null;
 
@@ -266,6 +406,8 @@
         bulletListMarker: "-",
         emDelimiter: "*"
       });
+      const defaultEscape = service.escape.bind(service);
+      service.escape = (text) => defaultEscape(text).replace(/\\\./g, ".");
 
       service.addRule("strikethrough", {
         filter: ["del", "s", "strike"],
@@ -277,11 +419,26 @@
       service.addRule("taskListItems", {
         filter(node) {
           return node.nodeName === "LI"
-            && (node.classList.contains("task-list-item") || node.hasAttribute("data-te-task"));
+            && (
+              node.classList.contains("task-list-item")
+              || node.hasAttribute("data-te-task")
+              || /^\s*\[[ xX]\]\s+/.test(node.textContent || "")
+            );
         },
         replacement(content, node) {
-          const checked = node.hasAttribute("data-te-checked") || node.querySelector("input:checked");
-          return `- [${checked ? "x" : " "}] ${content.trim()}\n`;
+          const textChecked = /^\s*\[[xX]\]/.test(node.textContent || "");
+          const checked = node.hasAttribute("data-te-checked") || node.querySelector("input:checked") || textChecked;
+          const text = content.trim().replace(/^\\?\[\s*\\?([ xX])\\?\]\s+/, "");
+          return `- [${checked ? "x" : " "}] ${text}\n`;
+        }
+      });
+
+      service.addRule("fencedCodeBlocks", {
+        filter: "pre",
+        replacement(content, node) {
+          const language = codeLanguageFromNode(node);
+          const code = normalizeCodeBlockText(codeTextFromNode(node), language);
+          return `\n\n${fencedCodeBlock(code, language)}\n\n`;
         }
       });
 
@@ -398,8 +555,9 @@
       }
 
       if (tag === "PRE") {
-        const code = node.textContent.replace(/\n+$/g, "");
-        return `\`\`\`\n${code}\n\`\`\``;
+        const language = codeLanguageFromNode(node);
+        const code = normalizeCodeBlockText(codeTextFromNode(node), language);
+        return fencedCodeBlock(code, language);
       }
 
       if (tag === "A") {
@@ -587,6 +745,7 @@
       const root = content.cloneNode(true);
 
       preserveTextualMediaFallbacks(root);
+      normalizeRichCodeBlocks(root);
 
       root.querySelectorAll([
         "script",
@@ -616,7 +775,7 @@
         node.removeAttribute("spellcheck");
         node.removeAttribute("placeholder");
         node.removeAttribute("style");
-        node.removeAttribute("class");
+        if (node.tagName !== "PRE" && node.tagName !== "CODE") node.removeAttribute("class");
       });
 
       return root;
