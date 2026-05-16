@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Element to Markdown",
+  "version": "0.1.0",
+  "description": "Select a page element and copy or save it as Markdown.",
+  "permissions": [
+    "activeTab",
+    "downloads",
+    "scripting"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "commands": {
+    "copy-as-markdown": {
+      "suggested_key": {
+        "default": "Alt+Shift+C",
+        "mac": "Alt+Shift+C"
+      },
+      "description": "Select an element and copy it as Markdown"
+    },
+    "save-as-markdown": {
+      "suggested_key": {
+        "default": "Alt+Shift+S",
+        "mac": "Alt+Shift+S"
+      },
+      "description": "Select an element and save it as Markdown"
+    }
+  }
+}

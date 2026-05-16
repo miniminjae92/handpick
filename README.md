@@ -4,6 +4,16 @@ F12 개발자 도구에서 `Copy element`로 복사한 HTML을 Markdown으로 �
 
 브라우저 안에서만 동작하며 입력한 HTML은 서버로 전송되지 않습니다.
 
+## Chrome 확장프로그램
+
+`extension/` 폴더에는 **Element to Markdown** Chrome 확장프로그램 v1이 들어 있습니다.
+
+- `Option + Shift + C`: 요소를 직접 고른 뒤 Markdown으로 복사
+- `Option + Shift + S`: 요소를 직접 고른 뒤 `.md` 파일로 저장
+- 복사/저장 뒤 뜨는 토스트에서 같은 선택 결과를 plain text로도 복사할 수 있습니다.
+
+개발 중에는 Chrome의 `chrome://extensions`에서 개발자 모드를 켠 뒤 `압축해제된 확장 프로그램을 로드`로 `extension/` 폴더를 선택해 사용할 수 있습니다.
+
 ## 사용법
 
 1. 변환하려는 웹페이지에서 개발자 도구를 엽니다.
