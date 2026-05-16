@@ -9,32 +9,27 @@ AI가 만든 답변이나 웹상의 좋은 정보를 개인 기록으로 옮길 
 원하는 영역을 직접 고르고, 구조를 덜 잃은 채 Markdown으로 옮깁니다.
 
 ### Save AI answers into my notes
-### AI 답변을 내 노트에 저장하기
 
-<video src="./ai-demo.mp4" controls></video>
+<video src="https://github.com/user-attachments/assets/44630d9d-ac3e-4e6b-b1b1-058e1a8d0335" controls></video>
 
 <details>
 <summary>More demos</summary>
 
 ### Capture useful web content as Markdown
-### 유용한 웹 정보를 Markdown으로 저장하기
 
-<video src="./web-demo.mp4" controls></video>
+<video src="https://github.com/user-attachments/assets/c581f208-78ff-4931-994f-8a883363ef45" controls></video>
 
 ### Copy selected content as plain text
-### 선택한 내용을 plain text로 복사하기
 
-<video src="./plaintext-demo.mp4" controls></video>
+<video src="https://github.com/user-attachments/assets/40ba7c02-7f36-4336-a0b0-c38cd83cc744" controls></video>
 
 ### Select only the exact element you want
-### 원하는 요소만 직접 선택하기
 
-<video src="./select-demo.mp4" controls></video>
+<video src="https://github.com/user-attachments/assets/7449c351-b971-464c-a9cc-d04745eef2c4" controls></video>
 
 ### Report a conversion issue
-### 변환 문제 리포트하기
 
-<video src="./issue-demo.mp4" controls></video>
+<video src="https://github.com/user-attachments/assets/43a8b267-50b3-4ae1-bcea-f50e91af8a14" controls></video>
 
 </details>
 
