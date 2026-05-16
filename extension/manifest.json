@@ -6,11 +6,24 @@
   "permissions": [
     "activeTab",
     "downloads",
-    "scripting"
+    "scripting",
+    "storage"
   ],
   "background": {
     "service_worker": "background.js"
   },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "report.html",
+        "report.js",
+        "report.css"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
   "commands": {
     "copy-as-markdown": {
       "suggested_key": {

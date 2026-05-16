@@ -1,18 +1,70 @@
-# F12 Copy Elements to MD
+# Element to Markdown
 
-F12 개발자 도구에서 `Copy element`로 복사한 HTML을 Markdown으로 변환하는 단일 페이지 도구입니다.
+웹페이지에서 내가 직접 고른 요소를 Markdown으로 빠르게 복사하거나 저장하는 Chrome 확장프로그램입니다.
 
-브라우저 안에서만 동작하며 입력한 HTML은 서버로 전송되지 않습니다.
+AI가 만든 답변이나 웹상의 좋은 정보를 개인 기록으로 옮길 때, 일반 복사보다 제목·목록·표·코드 블록이 덜 깨지도록 정리합니다. 선택한 내용은 기본적으로 브라우저 안에서만 처리됩니다.
 
-## Chrome 확장프로그램
+## 데모 영상
 
-`extension/` 폴더에는 **Element to Markdown** Chrome 확장프로그램 v1이 들어 있습니다.
+_새 데모 영상 추가 예정_
 
-- `Option + Shift + C`: 요소를 직접 고른 뒤 Markdown으로 복사
-- `Option + Shift + S`: 요소를 직접 고른 뒤 `.md` 파일로 저장
-- 복사/저장 뒤 뜨는 토스트에서 같은 선택 결과를 plain text로도 복사할 수 있습니다.
+## 주요 기능
 
-개발 중에는 Chrome의 `chrome://extensions`에서 개발자 모드를 켠 뒤 `압축해제된 확장 프로그램을 로드`로 `extension/` 폴더를 선택해 사용할 수 있습니다.
+- `Option + Shift + C`: 선택한 요소를 Markdown으로 복사
+- `Option + Shift + S`: 선택한 요소를 `.md` 파일로 저장
+- 선택 후 토스트에서:
+  - Markdown 저장
+  - plain text 복사
+  - HTML 복사
+  - 버그 리포트 초안 열기
+- Notion, Oopy, AI 응답 페이지처럼 구조가 복잡한 HTML도 최대한 읽기 좋은 Markdown으로 정리
+
+## 사용법
+
+### Chrome 확장프로그램
+
+1. Chrome에서 확장프로그램을 설치합니다.
+2. 원하는 웹페이지에서:
+   - `Option + Shift + C`를 누르면 복사 모드
+   - `Option + Shift + S`를 누르면 저장 모드
+3. 마우스로 원하는 요소를 직접 고릅니다.
+4. 클릭하면 즉시 복사 또는 저장됩니다.
+5. 완료 후 뜨는 토스트에서 필요하면 plain text, HTML, 버그 리포트 기능을 이어서 사용할 수 있습니다.
+
+### 개발 중 로컬 설치
+
+1. Chrome에서 `chrome://extensions`를 엽니다.
+2. 우상단 `개발자 모드`를 켭니다.
+3. `압축해제된 확장 프로그램을 로드`를 누릅니다.
+4. 이 저장소의 `extension/` 폴더를 선택합니다.
+
+## 버그 리포트 보내기
+
+변환이 이상한 경우:
+
+1. 요소를 선택한 뒤 토스트에서 `Report issue`를 누릅니다.
+2. 열린 리포트 페이지에서 선택 HTML과 변환 결과를 확인합니다.
+3. 민감한 정보가 있으면 직접 삭제합니다.
+4. `Download debug case`로 `debug-case.json`을 저장합니다.
+5. `Open GitHub issue`를 눌러 이슈를 열고 파일을 첨부합니다.
+
+리포트 초안은 사용자가 직접 전송하기 전까지 외부로 자동 업로드되지 않습니다.
+
+## 웹 버전
+
+기존 웹 버전도 유지합니다. F12 개발자 도구에서 `Copy element` 한 HTML을 붙여넣어 Markdown으로 변환할 수 있습니다.
+
+웹 버전이 더 편한 경우:
+
+- 확장프로그램을 설치할 수 없는 환경
+- 이미 HTML 조각을 가지고 있는 경우
+- 변환 결과를 별도 화면에서 직접 확인하고 싶은 경우
+
+## 개발용 도구
+
+- `dev.html`: 문제 HTML을 붙여넣고 렌더링, Markdown, plain text 출력을 확인한 뒤 `debug-case.json`으로 저장
+- `fixtures/`: 수정 후 재발 방지용 최소 재현 케이스
+- `fixtures.html`: 저장된 fixture의 기대 출력과 현재 출력을 비교
 
 공용 변환 로직을 수정한 뒤에는 아래 스크립트로 확장프로그램용 복사본을 갱신합니다.
 
@@ -20,38 +72,9 @@ F12 개발자 도구에서 `Copy element`로 복사한 HTML을 Markdown으로 �
 ./scripts/sync-extension-assets.sh
 ```
 
-## 개발용 페이지
-
-- `dev.html`: 문제 HTML을 붙여넣고 렌더링, Markdown, plain text 출력을 확인한 뒤 `debug-case.json`으로 저장
-- `fixtures.html`: 저장된 fixture의 기대 출력과 현재 출력을 비교
-
-## 사용법
-
-1. 변환하려는 웹페이지에서 개발자 도구를 엽니다.
-2. Elements 탭에서 본문 영역을 선택합니다.
-3. 선택한 요소를 우클릭한 뒤 `Copy` -> `Copy element`를 선택합니다. (우클릭 없이 `Ctrl + c` or `Cmd + c`도 가능합니다.)
-4. 이 도구의 `HTML 입력` 칸에 붙여넣습니다.
-5. 자동 변환된 Markdown을 복사하거나 `.md` 파일로 저장합니다.
-
-## 데모 영상
-
-[데모 영상 보기](https://github.com/user-attachments/assets/e898b235-fadf-422d-829c-ef2662abb14d)
-
-## 본문 추출 기준
-
-입력 HTML 안에서 주요 본문 후보를 우선순위로 찾고, 후보가 없으면 텍스트와 제목이 많은 영역을 자동으로 고릅니다.
-
-1. `.tui-editor-contents`
-2. `.notion-page-content`
-3. `.markdown-body`, `.prose`, `.post-content`, `.entry-content`, `.article-content`
-4. `[data-sourcepos]`, `[role="main"]`
-5. `article`, `main`, `.content`
-
-`.tui-editor-contents`나 `.notion-page-content`가 있는 HTML은 해당 영역을 우선 추출합니다.
-
 ## 변환 방식
 
-기본 HTML -> Markdown 변환은 Turndown을 사용합니다. 변환 전에 Notion/Oopy처럼 화면용 `div`와 `span`이 많은 HTML에서 불필요한 요소를 정리합니다.
+기본 HTML → Markdown 변환은 Turndown을 사용합니다. 변환 전에 화면용 래퍼나 불필요한 요소를 정리합니다.
 
 - Notion 이모지와 투명 `data:image/gif` placeholder의 텍스트/alt 보존
 - Notion 텍스트 블록을 문단처럼 정리
@@ -71,6 +94,22 @@ F12 개발자 도구에서 `Copy element`로 복사한 HTML을 Markdown으로 �
 - 표
 - 구분선
 
+## 개인정보
+
+이 확장은 사용자가 직접 실행하고 클릭한 요소만 처리합니다. 선택한 HTML은 자동으로 외부 전송되지 않으며, 버그 리포트도 사용자가 직접 확인하고 제출할 때만 외부로 전달됩니다.
+
+자세한 내용은 `docs/privacy.md`를 참고하세요.
+
+## 후원
+
+이 도구가 시간을 아껴줬다면, 향후 후원 링크를 통해 개발을 응원할 수 있습니다.
+
+## 기여
+
+- 버그 리포트: `CONTRIBUTING.md`
+- 릴리스 절차: `docs/release-checklist.md`
+- 변경 내역: `CHANGELOG.md`
+
 ## 한계
 
-이 도구는 게시글 본문을 빠르게 Markdown 초안으로 바꾸는 용도입니다. 모든 HTML과 모든 Markdown 확장 문법을 완벽하게 보존하지는 않습니다.
+이 도구는 웹의 다양한 HTML을 빠르게 개인 기록용 Markdown 초안으로 옮기는 용도입니다. 모든 HTML과 모든 Markdown 확장 문법을 완벽하게 보존하지는 않습니다.

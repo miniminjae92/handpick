@@ -174,6 +174,9 @@
         ["Copy HTML", async () => {
           await copyText(lastResult.html);
           showHtmlToast();
+        }],
+        ["Report issue", () => {
+          openReportIssue();
         }]
       ]
       : [
@@ -188,6 +191,9 @@
         ["Copy HTML", async () => {
           await copyText(lastResult.html);
           showHtmlToast();
+        }],
+        ["Report issue", () => {
+          openReportIssue();
         }]
       ];
 
@@ -217,6 +223,17 @@
     decorateToast(toast);
     document.documentElement.append(toast);
     scheduleToastRemoval(toast, 2800);
+  }
+
+  function openReportIssue() {
+    chrome.runtime.sendMessage({
+      type: "element-to-markdown:open-report",
+      payload: {
+        inputHtml: lastResult.html,
+        actualMarkdown: lastResult.markdown,
+        actualPlainText: lastResult.plainText
+      }
+    });
   }
 
   function stopSelectionMode() {

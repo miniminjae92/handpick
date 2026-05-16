@@ -22,3 +22,15 @@ chrome.commands.onCommand.addListener((command) => {
     activateSelectionMode("save");
   }
 });
+
+chrome.runtime.onMessage.addListener((message) => {
+  if (message?.type !== "element-to-markdown:open-report") return;
+
+  chrome.storage.session.set({
+    pendingBugReport: message.payload
+  }).then(() => {
+    chrome.tabs.create({
+      url: chrome.runtime.getURL("report.html")
+    });
+  });
+});

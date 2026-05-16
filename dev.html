@@ -89,6 +89,13 @@
       min-width: 0;
     }
 
+    .panel {
+      display: flex;
+      min-height: 0;
+      height: 70vh;
+      flex-direction: column;
+    }
+
     label {
       display: block;
       margin-bottom: 8px;
@@ -98,7 +105,6 @@
     textarea,
     .preview {
       width: 100%;
-      min-height: 70vh;
       border: 1px solid var(--line);
       border-radius: 8px;
       background: var(--panel);
@@ -106,23 +112,31 @@
     }
 
     textarea {
-      resize: vertical;
+      min-height: 0;
+      flex: 1;
+      resize: none;
+      overflow: auto;
       color: var(--text);
       font: 14px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     }
 
     .preview {
+      min-height: 0;
+      flex: 1;
       overflow: auto;
     }
 
     .stack {
       display: grid;
-      grid-template-rows: 1fr 1fr;
+      height: 70vh;
+      grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
       gap: 14px;
     }
 
-    .stack textarea {
+    .stack > div {
+      display: flex;
       min-height: 0;
+      flex-direction: column;
     }
 
     .status {
@@ -142,9 +156,17 @@
         grid-template-columns: 1fr;
       }
 
+      .panel {
+        height: 34vh;
+      }
+
+      .stack {
+        height: 70vh;
+      }
+
       .preview,
       textarea {
-        min-height: 34vh;
+        min-height: 0;
       }
     }
   </style>
@@ -163,12 +185,12 @@
     </header>
 
     <div class="grid">
-      <section>
+      <section class="panel">
         <label for="htmlInput">HTML 입력</label>
         <textarea id="htmlInput" spellcheck="false" placeholder="문제 HTML을 붙여넣으세요."></textarea>
       </section>
 
-      <section>
+      <section class="panel">
         <label>렌더링 미리보기</label>
         <div id="preview" class="preview"></div>
       </section>

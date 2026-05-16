@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Report issue · Element to Markdown</title>
+  <link rel="stylesheet" href="report.css">
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>Report issue</h1>
+        <p>선택한 HTML과 변환 결과를 확인한 뒤 직접 전송할 자료를 만듭니다.</p>
+      </div>
+      <div class="actions">
+        <button id="downloadButton" class="primary" type="button">Download debug case</button>
+        <button id="githubButton" type="button">Open GitHub issue</button>
+      </div>
+    </header>
+
+    <aside>
+      선택한 HTML에는 민감한 정보가 포함될 수 있습니다. 제출 전에 내용을 꼭 확인하고, 필요하면 직접 삭제하세요.
+    </aside>
+
+    <section>
+      <label for="description">문제 설명</label>
+      <textarea id="description" placeholder="어떤 점이 기대와 달랐는지 적어 주세요."></textarea>
+    </section>
+
+    <div class="grid">
+      <section>
+        <label for="htmlInput">선택한 HTML</label>
+        <textarea id="htmlInput"></textarea>
+      </section>
+      <section>
+        <label for="markdownOutput">실제 Markdown</label>
+        <textarea id="markdownOutput"></textarea>
+      </section>
+      <section>
+        <label for="plainTextOutput">실제 plain text</label>
+        <textarea id="plainTextOutput"></textarea>
+      </section>
+    </div>
+
+    <div id="status" class="status" role="status"></div>
+  </main>
+  <script src="report.js"></script>
+</body>
+</html>
