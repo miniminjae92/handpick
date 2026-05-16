@@ -104,7 +104,9 @@
         ]);
         const doc = new DOMParser().parseFromString(input, "text/html");
         const content = window.ElementToMarkdown.extractContent(doc);
-        const actual = window.ElementToMarkdown.convertElementToMarkdown(content);
+        const actual = window.ElementToMarkdown.convertElementToMarkdown(content, {
+          outputFormat: fixture.outputFormat || "standard"
+        });
         const passed = actual === expected.trim();
 
         const article = document.createElement("article");

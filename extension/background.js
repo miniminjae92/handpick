@@ -21,6 +21,10 @@ chrome.commands.onCommand.addListener((command) => {
   if (command === "save-as-markdown") {
     activateSelectionMode("save");
   }
+
+  if (command === "copy-as-plain-text") {
+    activateSelectionMode("plain");
+  }
 });
 
 chrome.runtime.onMessage.addListener((message) => {

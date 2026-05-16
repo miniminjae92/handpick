@@ -8,16 +8,22 @@ AI가 만든 답변이나 웹상의 좋은 정보를 개인 기록으로 옮길 
 
 _새 데모 영상 추가 예정_
 
+원하는 영역을 직접 고르고, 구조를 덜 잃은 채 Markdown으로 옮깁니다.
+
 ## 주요 기능
 
 - `Option + Shift + C`: 선택한 요소를 Markdown으로 복사
 - `Option + Shift + S`: 선택한 요소를 `.md` 파일로 저장
+- Chrome 단축키 관리 화면에서 `Copy plain text`를 포함한 각 액션의 단축키를 직접 지정 가능
 - 선택 후 토스트에서:
   - Markdown 저장
   - plain text 복사
   - HTML 복사
   - 버그 리포트 초안 열기
 - Notion, Oopy, AI 응답 페이지처럼 구조가 복잡한 HTML도 최대한 읽기 좋은 Markdown으로 정리
+- 출력 포맷 선택:
+  - `Standard Markdown`
+  - `Obsidian` callout 지원
 
 ## 사용법
 
@@ -30,6 +36,8 @@ _새 데모 영상 추가 예정_
 3. 마우스로 원하는 요소를 직접 고릅니다.
 4. 클릭하면 즉시 복사 또는 저장됩니다.
 5. 완료 후 뜨는 토스트에서 필요하면 plain text, HTML, 버그 리포트 기능을 이어서 사용할 수 있습니다.
+6. callout을 Obsidian 문법으로 보존하고 싶다면 확장프로그램 옵션에서 `Obsidian`을 선택합니다.
+7. 단축키는 확장프로그램 옵션의 `Manage keyboard shortcuts` 또는 `chrome://extensions/shortcuts`에서 변경할 수 있습니다.
 
 ### 개발 중 로컬 설치
 

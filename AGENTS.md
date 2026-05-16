@@ -15,6 +15,10 @@ The product has two surfaces:
 - Primary actions:
   - `Option + Shift + C`: copy selected element as Markdown
   - `Option + Shift + S`: save selected element as Markdown
+- Available commands:
+  - copy Markdown
+  - save Markdown
+  - copy plain text
 - Secondary actions live in the toast:
   - save Markdown
   - copy Markdown
@@ -22,6 +26,9 @@ The product has two surfaces:
   - copy HTML
   - report issue
 - Do not add metadata such as source URL, page title, or timestamps to converted Markdown unless the user explicitly changes product direction.
+- Supported output formats:
+  - `standard`: default, callouts become blockquotes
+  - `obsidian`: supported callouts become Obsidian callouts
 - Keep processing local by default. Do not add automatic uploads or analytics without an explicit product/privacy decision.
 
 ## Architecture

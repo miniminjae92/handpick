@@ -255,9 +255,11 @@
     event.stopPropagation();
 
     const element = highlightedElement || event.target;
+    const { outputFormat = "standard" } = await chrome.storage.sync.get("outputFormat");
     const { convertElementToMarkdown, convertElementToPlainText, fileNameFromMarkdown } = window.ElementToMarkdown;
-    const markdown = convertElementToMarkdown(element);
-    const plainText = convertElementToPlainText(element);
+    const options = { outputFormat };
+    const markdown = convertElementToMarkdown(element, options);
+    const plainText = convertElementToPlainText(element, options);
     lastResult = {
       markdown,
       plainText,
@@ -271,6 +273,12 @@
     if (currentMode === "save") {
       saveMarkdown(markdown, lastResult.filename);
       showToast("save");
+      return;
+    }
+
+    if (currentMode === "plain") {
+      await copyText(plainText);
+      showPlainTextToast();
       return;
     }
 

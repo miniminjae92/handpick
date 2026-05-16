@@ -207,7 +207,7 @@
       }
     });
 
-    service.addRule("taskListItems", {
+      service.addRule("taskListItems", {
       filter(node) {
         return node.nodeName === "LI"
           && (
@@ -222,7 +222,21 @@
         const text = content.trim().replace(/^\\?\[\s*\\?([ xX])\\?\]\s+/, "");
         return `- [${checked ? "x" : " "}] ${text}\n`;
       }
-    });
+      });
+
+      service.addRule("obsidianCallouts", {
+        filter(node) {
+          return node.nodeName === "BLOCKQUOTE" && node.hasAttribute("data-obsidian-callout");
+        },
+        replacement(content, node) {
+          const type = node.getAttribute("data-obsidian-callout") || "note";
+          const body = normalizeBlankLines(content)
+            .split("\n")
+            .map((line) => line ? `> ${line}` : ">")
+            .join("\n");
+          return `\n\n> [!${type}]\n${body}\n\n`;
+        }
+      });
 
     service.addRule("fencedCodeBlocks", {
       filter: "pre",
@@ -447,6 +461,21 @@
     });
   }
 
+  function normalizeCallouts(root, outputFormat = "standard") {
+    root.querySelectorAll(".callout, .v-alert[role='alert']").forEach((callout) => {
+      const blockquote = document.createElement("blockquote");
+      const content = callout.querySelector(".v-alert__content") || callout;
+      if (outputFormat === "obsidian") {
+        const type = callout.classList.contains("alert-warning-border") ? "warning" : "note";
+        blockquote.setAttribute("data-obsidian-callout", type);
+        blockquote.innerHTML = content.innerHTML;
+      } else {
+        blockquote.innerHTML = content.innerHTML;
+      }
+      callout.replaceWith(blockquote);
+    });
+  }
+
   function emojiFromCodepointSlug(value) {
     if (!value) return "";
 
@@ -532,7 +561,7 @@
     });
   }
 
-  function cleanupContent(content) {
+  function cleanupContent(content, options = {}) {
     const root = content.cloneNode(true);
 
     preserveTextualMediaFallbacks(root);
@@ -558,6 +587,7 @@
       "[class*='share']"
     ].join(",")).forEach((node) => node.remove());
 
+    normalizeCallouts(root, options.outputFormat);
     cleanupNotionBlocks(root);
     removeInvisibleAndEmptyNoise(root);
 
@@ -577,20 +607,20 @@
     return selector || content.tagName.toLowerCase();
   }
 
-  function convertWithTurndown(content) {
+  function convertWithTurndown(content, options = {}) {
     const service = createTurndownService();
     if (!service) return "";
 
-    return normalizeBlankLines(service.turndown(cleanupContent(content)));
+    return normalizeBlankLines(service.turndown(cleanupContent(content, options)));
   }
 
 
-  function convertElementToMarkdown(element) {
-    return convertWithTurndown(element) || normalizeBlankLines(toMarkdown(cleanupContent(element)));
+  function convertElementToMarkdown(element, options = {}) {
+    return convertWithTurndown(element, options) || normalizeBlankLines(toMarkdown(cleanupContent(element, options)));
   }
 
-  function convertElementToPlainText(element) {
-    return normalizeBlankLines(toPlainText(cleanupContent(element)));
+  function convertElementToPlainText(element, options = {}) {
+    return normalizeBlankLines(toPlainText(cleanupContent(element, options)));
   }
 
   function plainInlineChildren(node) {

@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Element to Markdown Demo Sample</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --text: #172033;
+      --muted: #5b6475;
+      --line: #d8dfeb;
+      --accent: #0f766e;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    main {
+      width: min(860px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 36px 0 56px;
+    }
+
+    article {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel);
+      padding: 32px;
+      box-shadow: 0 18px 60px rgba(23, 32, 51, 0.08);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 34px;
+    }
+
+    h2 {
+      margin-top: 32px;
+    }
+
+    p,
+    li {
+      line-height: 1.7;
+    }
+
+    .lead {
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .callout {
+      margin: 22px 0;
+      border-left: 5px solid var(--accent);
+      border-radius: 12px;
+      background: rgba(15, 118, 110, 0.08);
+      padding: 16px 18px;
+    }
+
+    blockquote {
+      margin: 22px 0;
+      border-left: 4px solid #94a3b8;
+      padding-left: 16px;
+      color: #334155;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      text-align: left;
+    }
+
+    th {
+      background: #f8fafc;
+    }
+
+    pre {
+      overflow: auto;
+      border-radius: 12px;
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 16px;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .task-list {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .task-list li {
+      margin: 8px 0;
+    }
+
+    hr {
+      margin: 30px 0;
+      border: 0;
+      border-top: 1px solid var(--line);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <article class="markdown-body">
+      <h1>웹에서 좋은 정보를 노트로 옮기는 체크리스트</h1>
+      <p class="lead">복사한 내용이 깨지지 않게 보관하려면, 내용뿐 아니라 구조도 함께 가져와야 합니다.</p>
+
+      <div class="callout">
+        <strong>핵심:</strong>
+        제목, 목록, 표, 코드 블록이 유지되면 나중에 다시 읽고 재사용하기가 훨씬 쉬워집니다.
+      </div>
+
+      <h2>1. 먼저 가져올 범위를 고릅니다</h2>
+      <p>페이지 전체보다 <strong>지금 필요한 부분</strong>만 선택하는 편이 더 좋습니다.</p>
+      <ul>
+        <li>답변 전체가 아니라 필요한 섹션만</li>
+        <li>설명과 예제가 함께 있는 블록</li>
+        <li>표나 코드가 포함된 덩어리</li>
+      </ul>
+
+      <h2>2. 기록에 남길 때 확인할 것</h2>
+      <ol>
+        <li>제목 계층이 유지되는가</li>
+        <li>목록이 한 문단으로 뭉개지지 않는가</li>
+        <li>코드 블록과 표가 다시 읽기 좋은가</li>
+      </ol>
+
+      <blockquote>
+        <p><strong>좋은 기록은 다시 찾았을 때 바로 이해되는 기록입니다.</strong></p>
+      </blockquote>
+
+      <h2>3. 간단한 비교</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>형식</th>
+            <th>장점</th>
+            <th>주의점</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Plain text</td>
+            <td>가볍고 어디서나 붙여넣기 쉬움</td>
+            <td>구조가 일부 사라짐</td>
+          </tr>
+          <tr>
+            <td>Markdown</td>
+            <td>구조와 가독성을 함께 보존</td>
+            <td>변환 품질이 중요함</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>4. 코드 예시</h2>
+      <pre><code class="language-javascript">function saveNote(title, body) {
+  return {
+    title,
+    body,
+    savedAt: new Date().toISOString()
+  };
+}</code></pre>
+
+      <h2>5. 작업 체크리스트</h2>
+      <ul class="task-list">
+        <li class="task-list-item">[x] 필요한 영역을 고른다</li>
+        <li class="task-list-item">[x] Markdown으로 복사한다</li>
+        <li class="task-list-item">[ ] 노트에 붙여넣고 최종 확인한다</li>
+      </ul>
+
+      <hr>
+
+      <p>이 문서는 데모 촬영용 샘플입니다. 링크 예시는 <a href="https://example.com">example.com</a>을 사용합니다.</p>
+    </article>
+  </main>
+</body>
+</html>
