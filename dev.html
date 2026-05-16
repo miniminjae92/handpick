@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Element to Markdown Dev</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #667085;
+      --line: #d7dce3;
+      --accent: #0f766e;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    main {
+      width: min(1440px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 32px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: end;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 26px;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    select,
+    button {
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      padding: 0 12px;
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      font-weight: 650;
+    }
+
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+    }
+
+    section {
+      min-width: 0;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    textarea,
+    .preview {
+      width: 100%;
+      min-height: 70vh;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 14px;
+    }
+
+    textarea {
+      resize: vertical;
+      color: var(--text);
+      font: 14px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .preview {
+      overflow: auto;
+    }
+
+    .stack {
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .stack textarea {
+      min-height: 0;
+    }
+
+    .status {
+      margin-top: 12px;
+      min-height: 20px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 1100px) {
+      header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .preview,
+      textarea {
+        min-height: 34vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>Element to Markdown Dev</h1>
+        <p>문제 HTML을 붙여넣고 변환 결과를 확인한 뒤, 디버그 케이스로 저장합니다.</p>
+      </div>
+      <div class="toolbar">
+        <button id="convertButton" class="primary" type="button">변환</button>
+        <button id="saveCaseButton" type="button">디버그 케이스 저장</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section>
+        <label for="htmlInput">HTML 입력</label>
+        <textarea id="htmlInput" spellcheck="false" placeholder="문제 HTML을 붙여넣으세요."></textarea>
+      </section>
+
+      <section>
+        <label>렌더링 미리보기</label>
+        <div id="preview" class="preview"></div>
+      </section>
+
+      <section class="stack">
+        <div>
+          <label for="markdownOutput">Markdown 출력</label>
+          <textarea id="markdownOutput" spellcheck="false"></textarea>
+        </div>
+        <div>
+          <label for="plainTextOutput">Plain text 출력</label>
+          <textarea id="plainTextOutput" spellcheck="false"></textarea>
+        </div>
+      </section>
+    </div>
+
+    <div id="status" class="status" role="status"></div>
+  </main>
+
+  <script src="shared/turndown.js"></script>
+  <script src="shared/converter-core.js"></script>
+  <script>
+    const htmlInput = document.querySelector("#htmlInput");
+    const preview = document.querySelector("#preview");
+    const markdownOutput = document.querySelector("#markdownOutput");
+    const plainTextOutput = document.querySelector("#plainTextOutput");
+    const statusLine = document.querySelector("#status");
+
+    function convert() {
+      const html = htmlInput.value.trim();
+      preview.innerHTML = html;
+      if (!html) {
+        markdownOutput.value = "";
+        plainTextOutput.value = "";
+        statusLine.textContent = "HTML을 입력해 주세요.";
+        return;
+      }
+
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const content = window.ElementToMarkdown.extractContent(doc);
+      markdownOutput.value = window.ElementToMarkdown.convertElementToMarkdown(content);
+      plainTextOutput.value = window.ElementToMarkdown.convertElementToPlainText(content);
+      statusLine.textContent = `${window.ElementToMarkdown.sourceLabel(content)} 기준으로 변환했습니다.`;
+    }
+
+    function saveDebugCase() {
+      if (!htmlInput.value.trim()) convert();
+      if (!htmlInput.value.trim()) return;
+
+      const payload = {
+        inputHtml: htmlInput.value,
+        actualMarkdown: markdownOutput.value,
+        actualPlainText: plainTextOutput.value
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2) + "\n"], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "debug-case.json";
+      link.click();
+      URL.revokeObjectURL(url);
+      statusLine.textContent = "debug-case.json 파일로 저장했습니다.";
+    }
+
+    document.querySelector("#convertButton").addEventListener("click", convert);
+    document.querySelector("#saveCaseButton").addEventListener("click", saveDebugCase);
+    htmlInput.addEventListener("paste", () => setTimeout(convert, 0));
+  </script>
+</body>
+</html>

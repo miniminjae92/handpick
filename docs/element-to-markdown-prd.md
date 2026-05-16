@@ -112,6 +112,7 @@
    - `Markdown copied`
    - `Save .md`
    - `Copy plain text`
+   - `Copy HTML`
 
 ### 7.2 저장 흐름
 
@@ -123,6 +124,7 @@
    - `Saved as .md`
    - `Copy Markdown`
    - `Copy plain text`
+   - `Copy HTML`
 
 ## 8. 출력 형식
 
@@ -182,12 +184,14 @@ plain text는 **Markdown 문법은 제거하되 읽기 쉬운 구조는 유지�
 - `Markdown copied`
 - `Save .md`
 - `Copy plain text`
+- `Copy HTML`
 
 #### 저장 후
 
 - `Saved as .md`
 - `Copy Markdown`
 - `Copy plain text`
+- `Copy HTML`
 
 ### v1에서 넣지 않는 UI
 

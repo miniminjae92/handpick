@@ -14,6 +14,17 @@ F12 개발자 도구에서 `Copy element`로 복사한 HTML을 Markdown으로 �
 
 개발 중에는 Chrome의 `chrome://extensions`에서 개발자 모드를 켠 뒤 `압축해제된 확장 프로그램을 로드`로 `extension/` 폴더를 선택해 사용할 수 있습니다.
 
+공용 변환 로직을 수정한 뒤에는 아래 스크립트로 확장프로그램용 복사본을 갱신합니다.
+
+```bash
+./scripts/sync-extension-assets.sh
+```
+
+## 개발용 페이지
+
+- `dev.html`: 문제 HTML을 붙여넣고 렌더링, Markdown, plain text 출력을 확인한 뒤 `debug-case.json`으로 저장
+- `fixtures.html`: 저장된 fixture의 기대 출력과 현재 출력을 비교
+
 ## 사용법
 
 1. 변환하려는 웹페이지에서 개발자 도구를 엽니다.

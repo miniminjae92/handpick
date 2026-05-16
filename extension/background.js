@@ -4,7 +4,7 @@ async function activateSelectionMode(mode) {
 
   await chrome.scripting.executeScript({
     target: { tabId: tab.id },
-    files: ["converter.js", "content-script.js"]
+    files: ["vendor/turndown.js", "converter-core.js", "content-script.js"]
   });
 
   await chrome.tabs.sendMessage(tab.id, {

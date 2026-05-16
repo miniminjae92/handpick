@@ -1,0 +1,7 @@
+[
+  {
+    "name": "blockquote-basic",
+    "input": "blockquote-basic/input.html",
+    "expected": "blockquote-basic/expected.md"
+  }
+]

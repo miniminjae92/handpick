@@ -7,6 +7,7 @@
   let mode = null;
   let highlightedElement = null;
   let lastResult = null;
+  let toastTimer = null;
 
   function ensureHighlight() {
     let highlight = document.getElementById(HIGHLIGHT_ID);
@@ -64,33 +65,101 @@
   }
 
   function removeToast() {
+    if (toastTimer) {
+      clearTimeout(toastTimer);
+      toastTimer = null;
+    }
     document.getElementById(TOAST_ID)?.remove();
+  }
+
+  function scheduleToastRemoval(toast, delay) {
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      if (toast.isConnected) toast.remove();
+      toastTimer = null;
+    }, delay);
+  }
+
+  function decorateToast(toast) {
+    Object.assign(toast.style, {
+      position: "fixed",
+      right: "20px",
+      bottom: "20px",
+      zIndex: "2147483647",
+      width: "210px",
+      display: "grid",
+      gap: "8px",
+      padding: "12px",
+      border: "1px solid rgba(15, 23, 42, 0.12)",
+      borderRadius: "12px",
+      background: "#ffffff",
+      color: "#0f172a",
+      boxShadow: "0 18px 42px rgba(15, 23, 42, 0.18)",
+      font: "14px/1.3 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      transition: "box-shadow 120ms ease, transform 120ms ease"
+    });
+
+    toast.addEventListener("mouseenter", () => {
+      if (toastTimer) {
+        clearTimeout(toastTimer);
+        toastTimer = null;
+      }
+      toast.style.boxShadow = "0 22px 48px rgba(15, 23, 42, 0.22)";
+      toast.style.transform = "translateY(-1px)";
+    });
+
+    toast.addEventListener("mouseleave", () => {
+      toast.style.boxShadow = "0 18px 42px rgba(15, 23, 42, 0.18)";
+      toast.style.transform = "translateY(0)";
+      scheduleToastRemoval(toast, 3200);
+    });
+  }
+
+  function createToastButton(label, onClick) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = label;
+    Object.assign(button.style, {
+      width: "100%",
+      border: "0",
+      borderRadius: "8px",
+      background: "transparent",
+      color: "#0f766e",
+      font: "inherit",
+      fontWeight: "600",
+      cursor: "pointer",
+      padding: "8px 10px",
+      textAlign: "left",
+      transition: "background 120ms ease, color 120ms ease"
+    });
+    button.addEventListener("mouseenter", () => {
+      button.style.background = "rgba(15, 118, 110, 0.08)";
+      button.style.color = "#115e59";
+    });
+    button.addEventListener("mouseleave", () => {
+      button.style.background = "transparent";
+      button.style.color = "#0f766e";
+    });
+    button.addEventListener("click", onClick);
+    return button;
   }
 
   function showToast(kind) {
     removeToast();
     const toast = document.createElement("div");
     toast.id = TOAST_ID;
-    Object.assign(toast.style, {
-      position: "fixed",
-      right: "20px",
-      bottom: "20px",
-      zIndex: "2147483647",
-      display: "flex",
-      alignItems: "center",
-      gap: "10px",
-      padding: "12px 14px",
-      border: "1px solid rgba(15, 23, 42, 0.12)",
-      borderRadius: "12px",
-      background: "#ffffff",
-      color: "#0f172a",
-      boxShadow: "0 18px 42px rgba(15, 23, 42, 0.18)",
-      font: "14px/1.3 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-    });
+    decorateToast(toast);
 
     const message = document.createElement("strong");
     message.textContent = kind === "save" ? "Saved as .md" : "Markdown copied";
     toast.append(message);
+
+    const divider = document.createElement("div");
+    Object.assign(divider.style, {
+      height: "1px",
+      background: "rgba(15, 23, 42, 0.08)"
+    });
+    toast.append(divider);
 
     const actions = kind === "save"
       ? [
@@ -101,6 +170,10 @@
         ["Copy plain text", async () => {
           await copyText(lastResult.plainText);
           showPlainTextToast();
+        }],
+        ["Copy HTML", async () => {
+          await copyText(lastResult.html);
+          showHtmlToast();
         }]
       ]
       : [
@@ -111,28 +184,19 @@
         ["Copy plain text", async () => {
           await copyText(lastResult.plainText);
           showPlainTextToast();
+        }],
+        ["Copy HTML", async () => {
+          await copyText(lastResult.html);
+          showHtmlToast();
         }]
       ];
 
     actions.forEach(([label, onClick]) => {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.textContent = label;
-      Object.assign(button.style, {
-        border: "0",
-        background: "transparent",
-        color: "#0f766e",
-        font: "inherit",
-        fontWeight: "600",
-        cursor: "pointer",
-        padding: "0"
-      });
-      button.addEventListener("click", onClick);
-      toast.append(button);
+      toast.append(createToastButton(label, onClick));
     });
 
     document.documentElement.append(toast);
-    setTimeout(() => toast.isConnected && toast.remove(), 4500);
+    scheduleToastRemoval(toast, 4500);
   }
 
   function showPlainTextToast() {
@@ -140,21 +204,19 @@
     const toast = document.createElement("div");
     toast.id = TOAST_ID;
     toast.textContent = "Plain text copied";
-    Object.assign(toast.style, {
-      position: "fixed",
-      right: "20px",
-      bottom: "20px",
-      zIndex: "2147483647",
-      padding: "12px 14px",
-      border: "1px solid rgba(15, 23, 42, 0.12)",
-      borderRadius: "12px",
-      background: "#ffffff",
-      color: "#0f172a",
-      boxShadow: "0 18px 42px rgba(15, 23, 42, 0.18)",
-      font: "14px/1.3 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-    });
+    decorateToast(toast);
     document.documentElement.append(toast);
-    setTimeout(() => toast.isConnected && toast.remove(), 2800);
+    scheduleToastRemoval(toast, 2800);
+  }
+
+  function showHtmlToast() {
+    removeToast();
+    const toast = document.createElement("div");
+    toast.id = TOAST_ID;
+    toast.textContent = "HTML copied";
+    decorateToast(toast);
+    document.documentElement.append(toast);
+    scheduleToastRemoval(toast, 2800);
   }
 
   function stopSelectionMode() {
@@ -176,12 +238,13 @@
     event.stopPropagation();
 
     const element = highlightedElement || event.target;
-    const { convertElement, convertElementToPlainText, fileNameFromMarkdown } = window.ElementToMarkdownConverter;
-    const markdown = convertElement(element);
+    const { convertElementToMarkdown, convertElementToPlainText, fileNameFromMarkdown } = window.ElementToMarkdown;
+    const markdown = convertElementToMarkdown(element);
     const plainText = convertElementToPlainText(element);
     lastResult = {
       markdown,
       plainText,
+      html: element.outerHTML,
       filename: fileNameFromMarkdown(markdown)
     };
 
