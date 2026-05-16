@@ -1,12 +1,12 @@
 # Element to Markdown
 
-Select any part of a webpage and copy or save it as clean Markdown.
+Select content from supported webpages and copy or save it as clean Markdown.
 
-Element to Markdown is built for saving AI answers and useful web content into personal notes without losing headings, lists, tables, code blocks, checklists, and supported callouts.
+Element to Markdown is built for saving AI answers and useful web content into personal notes while preserving common structures such as headings, lists, tables, code blocks, checklists, and supported callouts.
 
 ## Demo
 
-### Save AI answers into my notes
+### Save AI answers as Markdown
 
 <video src="https://github.com/user-attachments/assets/44630d9d-ac3e-4e6b-b1b1-058e1a8d0335" controls></video>
 
@@ -51,10 +51,12 @@ Element to Markdown is built for saving AI answers and useful web content into p
 
 ## Keyboard shortcuts
 
-Default shortcuts:
+Default shortcuts on macOS:
 
 - `Option + Shift + C` — Copy Markdown
 - `Option + Shift + S` — Save Markdown
+
+On Windows/Linux, Chrome may display `Option` as `Alt`.
 
 You can change shortcuts or assign one for `Copy plain text` in:
 
@@ -95,8 +97,8 @@ If a conversion looks wrong:
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for more details.
 
-## Support
+## Support 💚
 
-If Element to Markdown saves you time, you can support its development through GitHub Sponsors.
+If **Element to Markdown** saves you time, your support helps keep it maintained and improved.
 
-[Become a sponsor](https://github.com/sponsors/miniminjae92)
+[💚 Become a sponsor](https://github.com/sponsors/miniminjae92)
