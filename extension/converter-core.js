@@ -466,7 +466,15 @@
       const blockquote = document.createElement("blockquote");
       const content = callout.querySelector(".v-alert__content") || callout;
       if (outputFormat === "obsidian") {
-        const type = callout.classList.contains("alert-warning-border") ? "warning" : "note";
+        const className = callout.getAttribute("class") || "";
+        const type = [
+          ["success", "success"],
+          ["warning", "warning"],
+          ["error", "danger"],
+          ["danger", "danger"],
+          ["info", "info"],
+          ["tip", "tip"]
+        ].find(([token]) => className.includes(token))?.[1] || "note";
         blockquote.setAttribute("data-obsidian-callout", type);
         blockquote.innerHTML = content.innerHTML;
       } else {

@@ -19,5 +19,17 @@
     "input": "obsidian-callout/input.html",
     "expected": "obsidian-callout/expected.md",
     "outputFormat": "obsidian"
+  },
+  {
+    "name": "obsidian-success-callout",
+    "input": "obsidian-success-callout/input.html",
+    "expected": "obsidian-success-callout/expected.md",
+    "outputFormat": "obsidian"
+  },
+  {
+    "name": "obsidian-warning-callout",
+    "input": "obsidian-warning-callout/input.html",
+    "expected": "obsidian-warning-callout/expected.md",
+    "outputFormat": "obsidian"
   }
 ]
