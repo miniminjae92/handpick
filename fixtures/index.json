@@ -31,5 +31,15 @@
     "input": "obsidian-warning-callout/input.html",
     "expected": "obsidian-warning-callout/expected.md",
     "outputFormat": "obsidian"
+  },
+  {
+    "name": "existing-callout",
+    "input": "existing-callout/input.html",
+    "expected": "existing-callout/expected.md"
+  },
+  {
+    "name": "chatgpt-task-list",
+    "input": "chatgpt-task-list/input.html",
+    "expected": "chatgpt-task-list/expected.md"
   }
 ]

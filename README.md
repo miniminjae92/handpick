@@ -6,9 +6,37 @@ AI가 만든 답변이나 웹상의 좋은 정보를 개인 기록으로 옮길 
 
 ## 데모 영상
 
-_새 데모 영상 추가 예정_
-
 원하는 영역을 직접 고르고, 구조를 덜 잃은 채 Markdown으로 옮깁니다.
+
+### Save AI answers into my notes
+### AI 답변을 내 노트에 저장하기
+
+<video src="./ai-demo.mp4" controls></video>
+
+<details>
+<summary>More demos</summary>
+
+### Capture useful web content as Markdown
+### 유용한 웹 정보를 Markdown으로 저장하기
+
+<video src="./web-demo.mp4" controls></video>
+
+### Copy selected content as plain text
+### 선택한 내용을 plain text로 복사하기
+
+<video src="./plaintext-demo.mp4" controls></video>
+
+### Select only the exact element you want
+### 원하는 요소만 직접 선택하기
+
+<video src="./select-demo.mp4" controls></video>
+
+### Report a conversion issue
+### 변환 문제 리포트하기
+
+<video src="./issue-demo.mp4" controls></video>
+
+</details>
 
 ## 주요 기능
 

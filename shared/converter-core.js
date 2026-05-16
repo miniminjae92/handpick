@@ -238,6 +238,17 @@
         }
       });
 
+      service.addRule("existingCallouts", {
+        filter(node) {
+          return node.nodeName === "BLOCKQUOTE"
+            && /^\s*\[![a-z0-9_-]+\]/i.test(node.textContent || "");
+        },
+        replacement(content, node) {
+          const lines = normalizeBlankLines(textWithCodeLineBreaks(node)).split("\n");
+          return `\n\n${lines.map((line) => `> ${line}`).join("\n")}\n\n`;
+        }
+      });
+
     service.addRule("fencedCodeBlocks", {
       filter: "pre",
       replacement(content, node) {
@@ -484,6 +495,15 @@
     });
   }
 
+  function preserveTaskListSemantics(root) {
+    root.querySelectorAll("li").forEach((item) => {
+      if (!item.classList.contains("task-list-item") && !item.querySelector("input[type='checkbox']")) return;
+      item.setAttribute("data-te-task", "");
+      const checkbox = item.querySelector("input[type='checkbox']");
+      if (checkbox?.checked) item.setAttribute("data-te-checked", "");
+    });
+  }
+
   function emojiFromCodepointSlug(value) {
     if (!value) return "";
 
@@ -596,6 +616,7 @@
     ].join(",")).forEach((node) => node.remove());
 
     normalizeCallouts(root, options.outputFormat);
+    preserveTaskListSemantics(root);
     cleanupNotionBlocks(root);
     removeInvisibleAndEmptyNoise(root);
 
