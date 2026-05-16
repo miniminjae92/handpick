@@ -1,55 +1,102 @@
-# F12 Copy Elements to MD
+# Element to Markdown
 
-F12 개발자 도구에서 `Copy element`로 복사한 HTML을 Markdown으로 변환하는 단일 페이지 도구입니다.
+Select any part of a webpage and copy or save it as clean Markdown.
 
-브라우저 안에서만 동작하며 입력한 HTML은 서버로 전송되지 않습니다.
+Element to Markdown is built for saving AI answers and useful web content into personal notes without losing headings, lists, tables, code blocks, checklists, and supported callouts.
 
-## 사용법
+## Demo
 
-1. 변환하려는 웹페이지에서 개발자 도구를 엽니다.
-2. Elements 탭에서 본문 영역을 선택합니다.
-3. 선택한 요소를 우클릭한 뒤 `Copy` -> `Copy element`를 선택합니다. (우클릭 없이 `Ctrl + c` or `Cmd + c`도 가능합니다.)
-4. 이 도구의 `HTML 입력` 칸에 붙여넣습니다.
-5. 자동 변환된 Markdown을 복사하거나 `.md` 파일로 저장합니다.
+### Save AI answers into my notes
 
-## 데모 영상
+<video src="https://github.com/user-attachments/assets/44630d9d-ac3e-4e6b-b1b1-058e1a8d0335" controls></video>
 
-[데모 영상 보기](https://github.com/user-attachments/assets/e898b235-fadf-422d-829c-ef2662abb14d)
+<details>
+<summary>More demos</summary>
 
-## 본문 추출 기준
+### Capture useful web content as Markdown
 
-입력 HTML 안에서 주요 본문 후보를 우선순위로 찾고, 후보가 없으면 텍스트와 제목이 많은 영역을 자동으로 고릅니다.
+<video src="https://github.com/user-attachments/assets/c581f208-78ff-4931-994f-8a883363ef45" controls></video>
 
-1. `.tui-editor-contents`
-2. `.notion-page-content`
-3. `.markdown-body`, `.prose`, `.post-content`, `.entry-content`, `.article-content`
-4. `[data-sourcepos]`, `[role="main"]`
-5. `article`, `main`, `.content`
+### Copy selected content as plain text
 
-`.tui-editor-contents`나 `.notion-page-content`가 있는 HTML은 해당 영역을 우선 추출합니다.
+<video src="https://github.com/user-attachments/assets/40ba7c02-7f36-4336-a0b0-c38cd83cc744" controls></video>
 
-## 변환 방식
+### Select only the exact element you want
 
-기본 HTML -> Markdown 변환은 Turndown을 사용합니다. 변환 전에 Notion/Oopy처럼 화면용 `div`와 `span`이 많은 HTML에서 불필요한 요소를 정리합니다.
+<video src="https://github.com/user-attachments/assets/7449c351-b971-464c-a9cc-d04745eef2c4" controls></video>
 
-- Notion 이모지와 투명 `data:image/gif` placeholder의 텍스트/alt 보존
-- Notion 텍스트 블록을 문단처럼 정리
-- Notion 제목 블록을 제목 요소로 정리
-- `script`, `style`, `nav`, `footer`, 버튼, 폼, 광고/공유 영역 제거
-- 표와 task list 항목 보정
+### Report a conversion issue
 
-## 지원하는 변환
+<video src="https://github.com/user-attachments/assets/43a8b267-50b3-4ae1-bcea-f50e91af8a14" controls></video>
 
-- 제목: `h1`부터 `h6`
-- 문단과 줄바꿈
-- 굵게, 기울임, 취소선
-- 링크와 이미지
-- 순서 목록, 비순서 목록, 중첩 목록
-- 코드, 코드 블록
-- 인용문
-- 표
-- 구분선
+</details>
 
-## 한계
+## Features
 
-이 도구는 게시글 본문을 빠르게 Markdown 초안으로 바꾸는 용도입니다. 모든 HTML과 모든 Markdown 확장 문법을 완벽하게 보존하지는 않습니다.
+- Select the exact element you want with your mouse.
+- Copy selected content as Markdown.
+- Save selected content directly as a `.md` file.
+- Copy plain text or HTML from the same selection.
+- Choose between `Standard Markdown` and `Obsidian` output.
+- Create a reviewable bug report draft when conversion fails.
+
+## How to use
+
+1. Open any webpage.
+2. Press a shortcut:
+   - `Option + Shift + C` — copy as Markdown
+   - `Option + Shift + S` — save as Markdown
+3. Click the element you want to capture.
+4. Use the toast actions if you also want plain text, HTML, or a bug report draft.
+
+## Keyboard shortcuts
+
+Default shortcuts:
+
+- `Option + Shift + C` — Copy Markdown
+- `Option + Shift + S` — Save Markdown
+
+You can change shortcuts or assign one for `Copy plain text` in:
+
+```text
+chrome://extensions/shortcuts
+```
+
+You can also open the same shortcut settings from the extension options page.
+
+## Output formats
+
+- `Standard Markdown` — optimized for broad Markdown compatibility
+- `Obsidian` — adapts supported structures for better use in Obsidian, including supported callouts
+
+## Privacy
+
+Element to Markdown only processes the element you explicitly select.
+
+- Selected HTML is not uploaded automatically.
+- Browsing history is not collected.
+- Bug reports are only shared when you review and submit them yourself.
+
+See [`docs/privacy.md`](docs/privacy.md) for details.
+
+## Install
+
+Chrome Web Store link coming soon.
+
+## Reporting issues
+
+If a conversion looks wrong:
+
+1. Choose `Report issue` from the toast.
+2. Review the captured HTML and conversion output.
+3. Remove anything sensitive if needed.
+4. Download `debug-case.json`.
+5. Open a GitHub issue and attach the file.
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for more details.
+
+## Support
+
+If Element to Markdown saves you time, you can support its development through GitHub Sponsors.
+
+[Become a sponsor](https://github.com/sponsors/miniminjae92)

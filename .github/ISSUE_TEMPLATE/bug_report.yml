@@ -1,0 +1,26 @@
+name: Conversion bug
+description: Report a Markdown conversion issue
+title: "[bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a conversion issue.
+
+        If possible, use the extension's **Report issue** action, review the captured content for sensitive information, and attach the downloaded `debug-case.json`.
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe what looked wrong and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add screenshots or notes if helpful.
+    validations:
+      required: false

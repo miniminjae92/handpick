@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Element to Markdown options</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main>
+    <h1>Element to Markdown</h1>
+    <section>
+      <label for="outputFormat">Output format</label>
+      <select id="outputFormat">
+        <option value="standard">Standard Markdown</option>
+        <option value="obsidian">Obsidian</option>
+      </select>
+      <p>
+        Standard Markdown favors broad compatibility.
+        Obsidian adapts supported structures to Markdown conventions that work better in Obsidian.
+      </p>
+    </section>
+    <section class="secondary">
+      <h2>Keyboard shortcuts</h2>
+      <ul>
+        <li>Copy Markdown</li>
+        <li>Save Markdown</li>
+        <li>Copy plain text</li>
+      </ul>
+      <button id="shortcutsButton" type="button">Manage keyboard shortcuts</button>
+    </section>
+    <div id="status" role="status"></div>
+  </main>
+  <script src="options.js"></script>
+</body>
+</html>

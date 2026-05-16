@@ -1,0 +1,45 @@
+[
+  {
+    "name": "blockquote-basic",
+    "input": "blockquote-basic/input.html",
+    "expected": "blockquote-basic/expected.md"
+  },
+  {
+    "name": "callout-basic",
+    "input": "callout-basic/input.html",
+    "expected": "callout-basic/expected.md"
+  },
+  {
+    "name": "v-alert-callout",
+    "input": "v-alert-callout/input.html",
+    "expected": "v-alert-callout/expected.md"
+  },
+  {
+    "name": "obsidian-callout",
+    "input": "obsidian-callout/input.html",
+    "expected": "obsidian-callout/expected.md",
+    "outputFormat": "obsidian"
+  },
+  {
+    "name": "obsidian-success-callout",
+    "input": "obsidian-success-callout/input.html",
+    "expected": "obsidian-success-callout/expected.md",
+    "outputFormat": "obsidian"
+  },
+  {
+    "name": "obsidian-warning-callout",
+    "input": "obsidian-warning-callout/input.html",
+    "expected": "obsidian-warning-callout/expected.md",
+    "outputFormat": "obsidian"
+  },
+  {
+    "name": "existing-callout",
+    "input": "existing-callout/input.html",
+    "expected": "existing-callout/expected.md"
+  },
+  {
+    "name": "chatgpt-task-list",
+    "input": "chatgpt-task-list/input.html",
+    "expected": "chatgpt-task-list/expected.md"
+  }
+]
