@@ -472,6 +472,32 @@
     });
   }
 
+  function removeEmptyHeadingPermalinks(root) {
+    root.querySelectorAll("h1 > a[href^='#'], h2 > a[href^='#'], h3 > a[href^='#'], h4 > a[href^='#'], h5 > a[href^='#'], h6 > a[href^='#']").forEach((link) => {
+      const hasMeaningfulContent = normalizeBlankLines(link.textContent || "")
+        || link.querySelector("img[src]:not([src^='data:image/gif']), svg, video, iframe");
+      if (!hasMeaningfulContent) link.remove();
+    });
+  }
+
+  function normalizeStepHeadingBadges(root) {
+    root.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach((heading) => {
+      const badge = heading.previousElementSibling;
+      if (!badge || badge.tagName !== "SPAN") return;
+
+      const badgeText = normalizeBlankLines(badge.textContent || "");
+      const badgeClassName = badge.getAttribute("class") || "";
+      const headingText = normalizeBlankLines(heading.textContent || "");
+      const looksLikeStepBadge = /^\d{1,2}$/.test(badgeText)
+        && badgeClassName.includes("rounded-full");
+
+      if (!looksLikeStepBadge || !headingText || headingText.startsWith(`${badgeText}.`)) return;
+
+      heading.prepend(document.createTextNode(`${badgeText}. `));
+      badge.remove();
+    });
+  }
+
   function normalizeCallouts(root, outputFormat = "standard") {
     root.querySelectorAll(".callout, .v-alert[role='alert']").forEach((callout) => {
       const blockquote = document.createElement("blockquote");
@@ -618,6 +644,8 @@
     normalizeCallouts(root, options.outputFormat);
     preserveTaskListSemantics(root);
     cleanupNotionBlocks(root);
+    normalizeStepHeadingBadges(root);
+    removeEmptyHeadingPermalinks(root);
     removeInvisibleAndEmptyNoise(root);
 
     root.querySelectorAll("[contenteditable], [spellcheck], [placeholder], [style], [class]").forEach((node) => {
