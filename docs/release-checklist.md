@@ -21,7 +21,9 @@
 
 ## Publish
 
-- [ ] Merge `dev` into `main`
+- [ ] Open a release PR from `dev` into `main`
+- [ ] Review and merge the release PR
+- [ ] Do not merge release work directly into `main` except for emergency recovery
 - [ ] Tag `vX.Y.Z`
 - [ ] Create GitHub Release
 - [ ] Build extension ZIP from `extension/`
