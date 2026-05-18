@@ -78,10 +78,11 @@ Release flow:
 3. Bump `extension/manifest.json` version.
 4. Sync shared assets.
 5. Run release checklist in `docs/release-checklist.md`.
-6. Merge `dev` into `main`.
-7. Tag release as `vX.Y.Z`.
-8. Create GitHub Release.
-9. Upload the extension ZIP to Chrome Web Store.
+6. Open a release PR from `dev` into `main`.
+7. Review and merge the release PR. Do not merge release work directly into `main` except for emergency recovery.
+8. Tag release as `vX.Y.Z`.
+9. Create GitHub Release.
+10. Upload the extension ZIP to Chrome Web Store.
 
 ## Documentation rules
 
