@@ -20,9 +20,9 @@ body {
 }
 
 main {
-  width: min(1280px, calc(100vw - 32px));
+  width: min(1320px, calc(100vw - 64px));
   margin: 0 auto;
-  padding: 24px 0 32px;
+  padding: 28px 0 36px;
 }
 
 header {
@@ -94,7 +94,20 @@ label {
 .grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  gap: 20px;
+}
+
+.previewSection {
+  margin-top: 20px;
+}
+
+.renderedPreview {
+  height: 280px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 14px;
 }
 
 textarea {
@@ -105,7 +118,7 @@ textarea {
   border-radius: 8px;
   background: var(--panel);
   color: var(--text);
-  padding: 14px;
+  padding: 16px;
   font: 14px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 

@@ -2,18 +2,20 @@ const description = document.querySelector("#description");
 const htmlInput = document.querySelector("#htmlInput");
 const markdownOutput = document.querySelector("#markdownOutput");
 const plainTextOutput = document.querySelector("#plainTextOutput");
+const renderedPreview = document.querySelector("#renderedPreview");
 const statusLine = document.querySelector("#status");
 
 async function loadDraft() {
   const { pendingBugReport } = await chrome.storage.session.get("pendingBugReport");
   if (!pendingBugReport) {
-    statusLine.textContent = "불러올 리포트 초안이 없습니다.";
+    statusLine.textContent = "There is no bug report draft to load.";
     return;
   }
 
   htmlInput.value = pendingBugReport.inputHtml || "";
   markdownOutput.value = pendingBugReport.actualMarkdown || "";
   plainTextOutput.value = pendingBugReport.actualPlainText || "";
+  updateRenderedPreview();
 }
 
 function currentPayload() {
@@ -35,7 +37,7 @@ function downloadDebugCase() {
   link.download = "debug-case.json";
   link.click();
   URL.revokeObjectURL(url);
-  statusLine.textContent = "debug-case.json 파일로 저장했습니다.";
+  statusLine.textContent = "Saved debug-case.json.";
 }
 
 function openGitHubIssue() {
@@ -54,6 +56,11 @@ function openGitHubIssue() {
   window.open(`https://github.com/miniminjae92/f12-copy-elements-to-md/issues/new?${params}`, "_blank", "noopener");
 }
 
+function updateRenderedPreview() {
+  renderedPreview.innerHTML = htmlInput.value;
+}
+
 document.querySelector("#downloadButton").addEventListener("click", downloadDebugCase);
 document.querySelector("#githubButton").addEventListener("click", openGitHubIssue);
+htmlInput.addEventListener("input", updateRenderedPreview);
 loadDraft();

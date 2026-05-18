@@ -41,5 +41,15 @@
     "name": "chatgpt-task-list",
     "input": "chatgpt-task-list/input.html",
     "expected": "chatgpt-task-list/expected.md"
+  },
+  {
+    "name": "heading-permalink-anchor",
+    "input": "heading-permalink-anchor/input.html",
+    "expected": "heading-permalink-anchor/expected.md"
+  },
+  {
+    "name": "step-heading-badge",
+    "input": "step-heading-badge/input.html",
+    "expected": "step-heading-badge/expected.md"
   }
 ]
