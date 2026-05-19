@@ -45,8 +45,22 @@ h2 {
 
 ul {
   margin: 0 0 14px;
-  padding-left: 20px;
+  padding: 0;
   color: var(--muted);
+  list-style: none;
+}
+
+li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 32px;
+  border-bottom: 1px solid var(--line);
+}
+
+li:last-child {
+  border-bottom: 0;
 }
 
 button {
@@ -87,6 +101,8 @@ code {
   border-radius: 5px;
   background: #eef2f5;
   padding: 2px 5px;
+  color: var(--text);
+  white-space: nowrap;
 }
 
 #status {

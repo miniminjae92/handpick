@@ -65,6 +65,10 @@ chrome://extensions/shortcuts
 ```
 
 You can also open the same shortcut settings from the extension options page.
+Chrome treats extension shortcuts as user settings. If a suggested default is
+already taken, or if an unpacked development install is removed and loaded again
+with a different extension ID, Chrome may leave the shortcut unassigned; set it
+again from the shortcuts page.
 
 ## Output formats
 
