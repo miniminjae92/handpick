@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -18,6 +18,29 @@
       <p>
         Standard Markdown favors broad compatibility.
         Obsidian adapts supported structures to Markdown conventions that work better in Obsidian.
+      </p>
+    </section>
+    <section class="secondary">
+      <label for="frontmatterMode">Source frontmatter</label>
+      <select id="frontmatterMode">
+        <option value="save">Only when saving to a file or Obsidian</option>
+        <option value="always">Also when copying Markdown</option>
+        <option value="never">Never</option>
+      </select>
+      <p>
+        Frontmatter records the title, source URL, and capture time at the top of the note.
+        Plain text copies never include it.
+      </p>
+    </section>
+    <section class="secondary">
+      <h2>Obsidian</h2>
+      <label for="obsidianVault">Vault name</label>
+      <input id="obsidianVault" type="text" placeholder="My Vault" autocomplete="off">
+      <label for="obsidianFolder" class="stacked">Folder</label>
+      <input id="obsidianFolder" type="text" placeholder="Clippings" autocomplete="off">
+      <p>
+        Required for the Save to Obsidian action.
+        Use the vault name exactly as it appears in Obsidian; leave folder empty to save at the vault root.
       </p>
     </section>
     <section class="secondary">

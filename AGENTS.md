@@ -12,20 +12,24 @@ The product has two surfaces:
 ## Product invariants
 
 - Manual element selection is intentional; do not replace it with automatic extraction as the primary workflow.
-- Primary actions:
-  - `Option + Shift + C`: copy selected element as Markdown
-  - `Option + Shift + S`: save selected element as Markdown
-- Available commands:
+- Entry points (keep all three working):
+  - toolbar action popup (`popup.html`)
+  - right-click context menu (`Element to Markdown` submenu)
+  - keyboard shortcuts (`Option + Shift + C` copy, `Option + Shift + S` save)
+- Available capture modes:
   - copy Markdown
-  - save Markdown
+  - save Markdown (`.md` download)
+  - save to Obsidian (`obsidian://new` + clipboard; requires vault name in options)
   - copy plain text
+- In selection mode, `↑` / `↓` widen or narrow the selected element and `Esc` cancels; keep the on-screen hint in sync with these keys.
 - Secondary actions live in the toast:
   - save Markdown
   - copy Markdown
   - copy plain text
   - copy HTML
   - report issue
-- Do not add metadata such as source URL, page title, or timestamps to converted Markdown unless the user explicitly changes product direction.
+- Source frontmatter (`title`, `source`, `created`) follows the `frontmatterMode` setting: `save` (default; file/Obsidian outputs only), `always` (also Markdown copies), `never`. Plain text output never includes it.
+- Activation failures must be visible: restricted pages flash a badge on the action icon and the popup explains; clipboard and conversion failures show an error toast.
 - Supported output formats:
   - `standard`: default, callouts become blockquotes
   - `obsidian`: supported callouts become Obsidian callouts
@@ -46,8 +50,10 @@ The product has two surfaces:
 ```
 
 - Extension flow:
-  - `background.js` injects scripts and opens report drafts.
-  - `content-script.js` handles selection UI, toast actions, copy/save/report actions.
+  - `background.js` injects scripts, owns the context menu, badge error feedback, and opens report drafts and the onboarding page.
+  - `content-script.js` handles selection UI (hint, scope keys), toast actions, frontmatter, copy/save/Obsidian/report actions.
+  - `popup.html` / `popup.js` / `popup.css` are the toolbar entry point and show shortcut state.
+  - `welcome.html` / `welcome.js` onboard new installs.
   - `report.html` / `report.js` / `report.css` handle user-reviewed bug report drafts.
 
 ## Bug handling workflow

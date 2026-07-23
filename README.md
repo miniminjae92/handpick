@@ -33,9 +33,11 @@ Element to Markdown is built for saving AI answers and useful web content into p
 
 ## Features
 
-- Select the exact element you want with your mouse.
+- Select the exact element you want with your mouse, then widen or narrow it with `↑` / `↓`.
 - Copy selected content as Markdown.
 - Save selected content directly as a `.md` file.
+- Save selected content straight into an Obsidian vault (`obsidian://`).
+- Add source frontmatter (title, source URL, capture time) to saved notes.
 - Copy plain text or HTML from the same selection.
 - Choose between `Standard Markdown` and `Obsidian` output.
 - Create a reviewable bug report draft when conversion fails.
@@ -43,11 +45,14 @@ Element to Markdown is built for saving AI answers and useful web content into p
 ## How to use
 
 1. Open any webpage.
-2. Press a shortcut:
-   - `Option + Shift + C` — copy as Markdown
-   - `Option + Shift + S` — save as Markdown
-3. Click the element you want to capture.
+2. Start a capture in any of these ways:
+   - click the toolbar icon and pick an action,
+   - right-click the page and use the `Element to Markdown` menu,
+   - press a shortcut: `Option + Shift + C` (copy) or `Option + Shift + S` (save).
+3. Click the element you want to capture. Use `↑` / `↓` to adjust the selection scope and `Esc` to cancel.
 4. Use the toast actions if you also want plain text, HTML, or a bug report draft.
+
+To save directly into Obsidian, set your vault name (and optional folder) in the extension options first.
 
 ## Keyboard shortcuts
 
