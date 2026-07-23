@@ -24,7 +24,13 @@ main {
 }
 
 h1 {
+  margin: 0 0 8px;
+}
+
+.intro {
   margin: 0 0 20px;
+  color: var(--muted);
+  line-height: 1.55;
 }
 
 section {
@@ -47,6 +53,57 @@ ul {
   margin: 0 0 14px;
   padding-left: 20px;
   color: var(--muted);
+}
+
+ul.help {
+  margin: 10px 0 0;
+  display: grid;
+  gap: 6px;
+  line-height: 1.55;
+}
+
+ul.help:has(+ button) {
+  margin-bottom: 14px;
+}
+
+.help strong {
+  color: var(--text);
+}
+
+p.help {
+  margin: 10px 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+p.help.note {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f0f7f6;
+  color: #115e59;
+}
+
+.example {
+  margin: 10px 0 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #334155;
+  font: 12.5px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  overflow-x: auto;
+}
+
+.optional {
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #eef2f5;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  vertical-align: 1px;
 }
 
 button {
@@ -78,8 +135,9 @@ input[type="text"] {
   font: inherit;
 }
 
-label.stacked {
-  margin-top: 12px;
+label.stacked,
+.help + label {
+  margin-top: 14px;
 }
 
 ol {

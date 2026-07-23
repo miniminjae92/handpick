@@ -2,12 +2,13 @@
 
 ## Unreleased
 
-- Added toolbar popup and right-click context menu entry points.
+- Added a toolbar popup entry point.
 - Added onboarding page on first install.
 - Added selection scope adjustment (`↑` / `↓`), an on-screen hint, and highlight tracking while scrolling.
 - Added Save to Obsidian via `obsidian://new` with configurable vault and folder.
 - Added optional source frontmatter (title, source URL, capture time) with a `frontmatterMode` setting.
 - Added visible error feedback: action badge on restricted pages, error toasts for clipboard and conversion failures.
+- Rewrote options page guidance for first-time users and redesigned the in-page selection hint.
 - Removed unnecessary `web_accessible_resources` exposure of extension pages.
 - Added a Node fixture runner, sync drift check, and GitHub Actions CI.
 

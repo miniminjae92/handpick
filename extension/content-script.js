@@ -67,26 +67,112 @@
     expandDepth = 0;
   }
 
-  function showHint() {
-    if (document.getElementById(HINT_ID)) return;
+  const MODE_LABELS = {
+    copy: "Copy Markdown",
+    save: "Save .md",
+    obsidian: "Save to Obsidian",
+    plain: "Copy plain text"
+  };
+
+  function createHintKey(label) {
+    const key = document.createElement("span");
+    key.textContent = label;
+    Object.assign(key.style, {
+      padding: "2px 7px",
+      borderRadius: "6px",
+      background: "rgba(255, 255, 255, 0.12)",
+      border: "1px solid rgba(255, 255, 255, 0.22)",
+      font: "11px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+      color: "#ffffff",
+      whiteSpace: "nowrap"
+    });
+    return key;
+  }
+
+  function createHintItem(keyLabel, text) {
+    const item = document.createElement("span");
+    Object.assign(item.style, {
+      display: "flex",
+      alignItems: "center",
+      gap: "6px"
+    });
+    const label = document.createElement("span");
+    label.textContent = text;
+    Object.assign(label.style, {
+      color: "rgba(255, 255, 255, 0.8)",
+      fontSize: "12px",
+      whiteSpace: "nowrap"
+    });
+    item.append(createHintKey(keyLabel), label);
+    return item;
+  }
+
+  function showHint(activeMode) {
+    hideHint();
     const hint = document.createElement("div");
     hint.id = HINT_ID;
-    hint.textContent = "Click: capture · ↑ / ↓: adjust scope · Esc: cancel";
     Object.assign(hint.style, {
       position: "fixed",
       top: "16px",
       left: "50%",
-      transform: "translateX(-50%)",
+      transform: "translate(-50%, -6px)",
+      opacity: "0",
+      transition: "opacity 160ms ease, transform 160ms ease",
       zIndex: "2147483647",
       pointerEvents: "none",
-      padding: "8px 14px",
-      borderRadius: "999px",
-      background: "rgba(15, 23, 42, 0.88)",
-      color: "#ffffff",
+      display: "flex",
+      alignItems: "center",
+      gap: "12px",
+      maxWidth: "calc(100vw - 32px)",
+      padding: "10px 16px",
+      borderRadius: "14px",
+      background: "rgba(15, 23, 42, 0.92)",
+      boxShadow: "0 12px 32px rgba(15, 23, 42, 0.35)",
       font: "13px/1.4 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      boxShadow: "0 10px 26px rgba(15, 23, 42, 0.28)"
+      color: "#ffffff"
     });
+
+    const dot = document.createElement("span");
+    Object.assign(dot.style, {
+      width: "8px",
+      height: "8px",
+      borderRadius: "50%",
+      background: "#2dd4bf",
+      flex: "none"
+    });
+
+    const modeLabel = document.createElement("strong");
+    modeLabel.textContent = MODE_LABELS[activeMode] || "Capture";
+    Object.assign(modeLabel.style, {
+      fontWeight: "700",
+      whiteSpace: "nowrap"
+    });
+
+    const divider = document.createElement("span");
+    Object.assign(divider.style, {
+      width: "1px",
+      height: "16px",
+      background: "rgba(255, 255, 255, 0.25)",
+      flex: "none"
+    });
+
+    hint.append(
+      dot,
+      modeLabel,
+      divider,
+      createHintItem("Click", "capture"),
+      createHintItem("↑", "wider"),
+      createHintItem("↓", "narrower"),
+      createHintItem("Esc", "cancel")
+    );
+
     document.documentElement.append(hint);
+    requestAnimationFrame(() => {
+      Object.assign(hint.style, {
+        opacity: "1",
+        transform: "translate(-50%, 0)"
+      });
+    });
   }
 
   function hideHint() {
@@ -442,7 +528,7 @@
   function activate(nextMode) {
     stopSelectionMode();
     mode = nextMode;
-    showHint();
+    showHint(nextMode);
     document.addEventListener("mousemove", onMouseMove, true);
     document.addEventListener("click", onClick, true);
     document.addEventListener("keydown", onKeyDown, true);

@@ -3,3 +3,4 @@ element-to-markdown-*.zip
 .DS_Store
 .codex_session
 node_modules/
+docs/conversation/
