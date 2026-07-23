@@ -38,8 +38,8 @@
 
   function normalizeBlankLines(markdown) {
     return markdown
-      .replace(/\n[ \t]*\n[ \t]*([*-]\s)/g, "\n$1")
-      .replace(/[ \t]+\n/g, "\n")
+      .replace(/^((?:[-*]|\d+\.)\s[^\n]*)\n[ \t]*\n(?=[ \t]*(?:[-*]|\d+\.)\s)/gm, "$1\n")
+      .replace(/[ \t]+\n/g, (match) => (/ {2}/.test(match) ? "  \n" : "\n"))
       .replace(/\n{3,}/g, "\n\n")
       .replace(/^\s+|\s+$/g, "");
   }
@@ -195,7 +195,8 @@
       headingStyle: "atx",
       codeBlockStyle: "fenced",
       bulletListMarker: "-",
-      emDelimiter: "*"
+      emDelimiter: "*",
+      hr: "---"
     });
     const defaultEscape = service.escape.bind(service);
     service.escape = (text) => defaultEscape(text).replace(/\\\./g, ".");
@@ -204,6 +205,39 @@
       filter: ["del", "s", "strike"],
       replacement(content) {
         return content ? `~~${content}~~` : "";
+      }
+    });
+
+    // Single-space list markers instead of turndown's three-space padding.
+    // Added before taskListItems so task items keep their own rule.
+    service.addRule("listItems", {
+      filter: "li",
+      replacement(content, node, options) {
+        let prefix = `${options.bulletListMarker} `;
+        const parent = node.parentNode;
+        if (parent.nodeName === "OL") {
+          const start = parent.getAttribute("start");
+          const index = Array.prototype.indexOf.call(parent.children, node);
+          prefix = `${start ? Number(start) + index : index + 1}. `;
+        }
+        const body = content
+          .replace(/^\n+/, "")
+          .replace(/\n+$/, "\n")
+          .replace(/\n/gm, `\n${" ".repeat(prefix.length)}`);
+        return prefix + body + (node.nextSibling && !/\n$/.test(body) ? "\n" : "");
+      }
+    });
+
+    service.addRule("mathBlocks", {
+      filter(node) {
+        return node.nodeName === "SPAN" && node.hasAttribute("data-etm-math");
+      },
+      replacement(content, node) {
+        const tex = node.getAttribute("data-etm-math");
+        if (!tex) return "";
+        return node.hasAttribute("data-etm-math-display")
+          ? `\n\n$$\n${tex}\n$$\n\n`
+          : `$${tex}$`;
       }
     });
 
@@ -355,6 +389,11 @@
 
     if (node.nodeType !== Node.ELEMENT_NODE) return "";
 
+    if (node.hasAttribute("data-etm-math")) {
+      const tex = node.getAttribute("data-etm-math");
+      return node.hasAttribute("data-etm-math-display") ? `$$\n${tex}\n$$` : `$${tex}$`;
+    }
+
     const tag = node.tagName;
     const inline = context.inline;
 
@@ -498,12 +537,47 @@
     });
   }
 
-  function normalizeCallouts(root, outputFormat = "standard") {
-    root.querySelectorAll(".callout, .v-alert[role='alert']").forEach((callout) => {
-      const blockquote = document.createElement("blockquote");
-      const content = callout.querySelector(".v-alert__content") || callout;
-      if (outputFormat === "obsidian") {
-        const className = callout.getAttribute("class") || "";
+  const calloutSources = [
+    {
+      // GitHub rendered alerts: <div class="markdown-alert markdown-alert-note">
+      selector: ".markdown-alert",
+      resolve(node) {
+        const match = (node.getAttribute("class") || "").match(/markdown-alert-([a-z]+)/i);
+        const map = { note: "note", tip: "tip", important: "important", warning: "warning", caution: "danger" };
+        return {
+          type: map[match?.[1]?.toLowerCase()] || "note",
+          title: node.querySelector(".markdown-alert-title"),
+          content: node
+        };
+      }
+    },
+    {
+      // Docusaurus admonitions (v2/v3 themes)
+      selector: ".theme-admonition, .admonition",
+      resolve(node) {
+        const match = (node.getAttribute("class") || "").match(/(?:theme-admonition|admonition)-([a-z]+)/i);
+        const map = {
+          note: "note",
+          info: "info",
+          tip: "tip",
+          caution: "warning",
+          warning: "warning",
+          danger: "danger",
+          secondary: "note",
+          important: "important",
+          success: "success"
+        };
+        return {
+          type: map[match?.[1]?.toLowerCase()] || "note",
+          title: node.querySelector(".admonition-heading, [class*='admonitionHeading']"),
+          content: node
+        };
+      }
+    },
+    {
+      selector: ".callout, .v-alert[role='alert']",
+      resolve(node) {
+        const className = node.getAttribute("class") || "";
         const type = [
           ["success", "success"],
           ["warning", "warning"],
@@ -512,13 +586,132 @@
           ["info", "info"],
           ["tip", "tip"]
         ].find(([token]) => className.includes(token))?.[1] || "note";
-        blockquote.setAttribute("data-obsidian-callout", type);
-        blockquote.innerHTML = content.innerHTML;
-      } else {
-        blockquote.innerHTML = content.innerHTML;
+        return {
+          type,
+          title: null,
+          content: node.querySelector(".v-alert__content") || node
+        };
       }
-      callout.replaceWith(blockquote);
+    }
+  ];
+
+  function normalizeCallouts(root, outputFormat = "standard") {
+    for (const source of calloutSources) {
+      root.querySelectorAll(source.selector).forEach((callout) => {
+        if (!root.contains(callout)) return;
+        const { type, title, content } = source.resolve(callout);
+        const blockquote = document.createElement("blockquote");
+        if (outputFormat === "obsidian") {
+          if (title) title.remove();
+          blockquote.setAttribute("data-obsidian-callout", type);
+        }
+        blockquote.innerHTML = content.innerHTML;
+        callout.replaceWith(blockquote);
+      });
+    }
+  }
+
+  function replaceWithMathToken(node, tex, display) {
+    const token = document.createElement("span");
+    token.setAttribute("data-etm-math", tex);
+    if (display) token.setAttribute("data-etm-math-display", "");
+    token.textContent = tex;
+    node.replaceWith(token);
+  }
+
+  function normalizeMathElements(root) {
+    // KaTeX (ChatGPT, Claude, many docs sites): LaTeX source lives in the
+    // MathML annotation node.
+    root.querySelectorAll(".katex").forEach((katex) => {
+      if (!root.contains(katex)) return;
+      const tex = katex.querySelector("annotation[encoding='application/x-tex']")?.textContent.trim();
+      if (!tex) return;
+      const displayWrapper = katex.closest(".katex-display");
+      replaceWithMathToken(displayWrapper || katex, tex, Boolean(displayWrapper));
     });
+
+    // MathJax v2 keeps the TeX source in a sibling script tag.
+    root.querySelectorAll("script[type^='math/tex']").forEach((script) => {
+      const tex = (script.textContent || "").trim();
+      const display = /mode\s*=\s*display/.test(script.getAttribute("type") || "");
+      const rendered = script.previousElementSibling;
+      if (rendered && /(?:^|\s)MathJax/.test(rendered.getAttribute("class") || "")) rendered.remove();
+      if (tex) {
+        replaceWithMathToken(script, tex, display);
+      } else {
+        script.remove();
+      }
+    });
+
+    // MathJax v3 with assistive MathML annotations.
+    root.querySelectorAll("mjx-container").forEach((container) => {
+      const tex = container.querySelector("annotation[encoding='application/x-tex']")?.textContent.trim();
+      if (!tex) return;
+      replaceWithMathToken(container, tex, container.getAttribute("display") === "true");
+    });
+  }
+
+  const lazySrcAttributes = ["data-src", "data-lazy-src", "data-original", "data-actualsrc"];
+
+  function bestUrlFromSrcset(srcset) {
+    let best = "";
+    let bestWidth = -1;
+    for (const candidate of (srcset || "").split(",")) {
+      const [url, descriptor] = candidate.trim().split(/\s+/);
+      if (!url) continue;
+      const widthMatch = descriptor ? descriptor.match(/^(\d+)w$/) : null;
+      const width = widthMatch ? Number(widthMatch[1]) : 0;
+      if (width > bestWidth) {
+        bestWidth = width;
+        best = url;
+      }
+    }
+    return best;
+  }
+
+  function normalizeLazyImages(root) {
+    root.querySelectorAll("img").forEach((img) => {
+      const src = img.getAttribute("src") || "";
+      if (src && !src.startsWith("data:")) return;
+
+      let replacement = "";
+      for (const attribute of lazySrcAttributes) {
+        const value = (img.getAttribute(attribute) || "").trim();
+        if (value) {
+          replacement = value;
+          break;
+        }
+      }
+      if (!replacement) {
+        replacement = bestUrlFromSrcset(img.getAttribute("data-srcset") || img.getAttribute("srcset"));
+      }
+      if (!replacement) {
+        const picture = img.closest("picture");
+        const source = picture?.querySelector("source[srcset], source[data-srcset]");
+        if (source) {
+          replacement = bestUrlFromSrcset(source.getAttribute("srcset") || source.getAttribute("data-srcset"));
+        }
+      }
+      if (replacement) img.setAttribute("src", replacement);
+    });
+  }
+
+  function absolutizeUrls(root) {
+    const base = root.ownerDocument?.baseURI || "";
+    if (!base || base === "about:blank") return;
+
+    const rewrite = (node, attribute) => {
+      const value = (node.getAttribute(attribute) || "").trim();
+      if (!value || /^[a-z][a-z0-9+.-]*:/i.test(value)) return;
+      try {
+        node.setAttribute(attribute, new URL(value, base).href);
+      } catch {
+        // Leave unresolvable values untouched.
+      }
+    };
+
+    root.querySelectorAll("a[href]").forEach((node) => rewrite(node, "href"));
+    root.querySelectorAll("img[src]").forEach((node) => rewrite(node, "src"));
   }
 
   function preserveTaskListSemantics(root) {
@@ -618,7 +811,9 @@
   function cleanupContent(content, options = {}) {
     const root = content.cloneNode(true);
 
+    normalizeLazyImages(root);
     preserveTextualMediaFallbacks(root);
+    normalizeMathElements(root);
     normalizeRichCodeBlocks(root);
 
     root.querySelectorAll([
@@ -647,6 +842,7 @@
     normalizeStepHeadingBadges(root);
     removeEmptyHeadingPermalinks(root);
     removeInvisibleAndEmptyNoise(root);
+    absolutizeUrls(root);
 
     root.querySelectorAll("[contenteditable], [spellcheck], [placeholder], [style], [class]").forEach((node) => {
       node.removeAttribute("contenteditable");

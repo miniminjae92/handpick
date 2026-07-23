@@ -40,6 +40,9 @@ Element to Markdown is built for saving AI answers and useful web content into p
 - Add source frontmatter (title, source URL, capture time) to saved notes.
 - Copy plain text or HTML from the same selection.
 - Choose between `Standard Markdown` and `Obsidian` output.
+- Preserve KaTeX/MathJax math as `$…$` and `$$…$$` LaTeX.
+- Resolve relative links and lazy-loaded images to real URLs.
+- Convert GitHub alerts and Docusaurus admonitions into Obsidian callouts.
 - Create a reviewable bug report draft when conversion fails.
 
 ## How to use
