@@ -45,9 +45,8 @@ Element to Markdown is built for saving AI answers and useful web content into p
 ## How to use
 
 1. Open any webpage.
-2. Start a capture in any of these ways:
+2. Start a capture in either of these ways:
    - click the toolbar icon and pick an action,
-   - right-click the page and use the `Element to Markdown` menu,
    - press a shortcut: `Option + Shift + C` (copy) or `Option + Shift + S` (save).
 3. Click the element you want to capture. Use `↑` / `↓` to adjust the selection scope and `Esc` to cancel.
 4. Use the toast actions if you also want plain text, HTML, or a bug report draft.

@@ -12,10 +12,10 @@ The product has two surfaces:
 ## Product invariants
 
 - Manual element selection is intentional; do not replace it with automatic extraction as the primary workflow.
-- Entry points (keep all three working):
+- Entry points (keep both working):
   - toolbar action popup (`popup.html`)
-  - right-click context menu (`Element to Markdown` submenu)
   - keyboard shortcuts (`Option + Shift + C` copy, `Option + Shift + S` save)
+- No right-click context menu by product decision (2026-07-23): it clutters the page menu and the popup covers the same flows. Do not re-add without an explicit product decision.
 - Available capture modes:
   - copy Markdown
   - save Markdown (`.md` download)
@@ -50,7 +50,7 @@ The product has two surfaces:
 ```
 
 - Extension flow:
-  - `background.js` injects scripts, owns the context menu, badge error feedback, and opens report drafts and the onboarding page.
+  - `background.js` injects scripts, owns badge error feedback, and opens report drafts and the onboarding page.
   - `content-script.js` handles selection UI (hint, scope keys), toast actions, frontmatter, copy/save/Obsidian/report actions.
   - `popup.html` / `popup.js` / `popup.css` are the toolbar entry point and show shortcut state.
   - `welcome.html` / `welcome.js` onboard new installs.

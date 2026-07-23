@@ -4,16 +4,6 @@ const MODES_BY_COMMAND = {
   "copy-as-plain-text": "plain"
 };
 
-const MENU_ITEMS = [
-  { id: "etm-copy", mode: "copy", title: "Copy as Markdown" },
-  { id: "etm-save", mode: "save", title: "Save as Markdown" },
-  { id: "etm-obsidian", mode: "obsidian", title: "Save to Obsidian" },
-  { id: "etm-plain", mode: "plain", title: "Copy as plain text" }
-];
-
-// "page" alone excludes right-clicks on links, images, and media.
-const MENU_CONTEXTS = ["page", "selection", "link", "image", "video", "audio", "editable"];
-
 async function flashActivationError(tabId) {
   try {
     await chrome.action.setBadgeBackgroundColor({ tabId, color: "#b42318" });
@@ -31,25 +21,22 @@ async function flashActivationError(tabId) {
   }
 }
 
-async function activateSelectionMode(mode, targetTab, frameId) {
+async function activateSelectionMode(mode, targetTab) {
   let tab = targetTab;
   if (!tab) {
     [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
   }
   if (!tab?.id) return { ok: false };
 
-  const target = { tabId: tab.id };
-  if (frameId) target.frameIds = [frameId];
-
   try {
     await chrome.scripting.executeScript({
-      target,
+      target: { tabId: tab.id },
       files: ["vendor/turndown.js", "converter-core.js", "content-script.js"]
     });
     await chrome.tabs.sendMessage(tab.id, {
       type: "element-to-markdown:activate",
       mode
-    }, frameId ? { frameId } : undefined);
+    });
     return { ok: true };
   } catch {
     await flashActivationError(tab.id);
@@ -58,30 +45,9 @@ async function activateSelectionMode(mode, targetTab, frameId) {
 }
 
 chrome.runtime.onInstalled.addListener((details) => {
-  chrome.contextMenus.removeAll(() => {
-    chrome.contextMenus.create({
-      id: "etm-root",
-      title: "Element to Markdown",
-      contexts: MENU_CONTEXTS
-    });
-    for (const item of MENU_ITEMS) {
-      chrome.contextMenus.create({
-        id: item.id,
-        parentId: "etm-root",
-        title: item.title,
-        contexts: MENU_CONTEXTS
-      });
-    }
-  });
-
   if (details.reason === "install") {
     chrome.tabs.create({ url: chrome.runtime.getURL("welcome.html") });
   }
-});
-
-chrome.contextMenus.onClicked.addListener((info, tab) => {
-  const item = MENU_ITEMS.find((candidate) => candidate.id === info.menuItemId);
-  if (item) activateSelectionMode(item.mode, tab, info.frameId);
 });
 
 chrome.commands.onCommand.addListener((command) => {
