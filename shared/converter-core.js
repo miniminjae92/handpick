@@ -723,9 +723,23 @@
     return content;
   }
 
+  function stripFencedCodeBlocks(markdown) {
+    return markdown.replace(/^(`{3,})[^\n]*\n[\s\S]*?^\1`*[ \t]*$/gm, "");
+  }
+
+  function headingTextFromMarkdown(markdown) {
+    const firstHeading = stripFencedCodeBlocks(markdown).match(/^#{1,6}\s+(.+)$/m);
+    if (!firstHeading) return "";
+    return firstHeading[1]
+      .replace(/`([^`]*)`/g, "$1")
+      .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1")
+      .replace(/(\*\*|__)(.+?)\1/g, "$2")
+      .replace(/(\*|_)(.+?)\1/g, "$2")
+      .trim();
+  }
+
   function fileNameFromMarkdown(markdown) {
-    const firstHeading = markdown.match(/^#{1,6}\s+(.+)$/m);
-    const baseName = firstHeading ? firstHeading[1] : "converted";
+    const baseName = headingTextFromMarkdown(markdown) || "converted";
     const safeName = baseName.replace(/[\\/:*?"<>|]/g, "").replace(/\s+/g, "-").slice(0, 80) || "converted";
     return `${safeName}.md`;
   }
@@ -736,6 +750,7 @@
     sourceLabel,
     convertElementToMarkdown,
     convertElementToPlainText,
+    headingTextFromMarkdown,
     fileNameFromMarkdown
   };
 })();

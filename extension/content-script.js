@@ -103,8 +103,8 @@
   }
 
   function buildFrontmatter(markdown) {
-    const heading = markdown.match(/^#{1,6}\s+(.+)$/m);
-    const title = ((heading ? heading[1] : document.title) || "Untitled")
+    const headingTitle = window.ElementToMarkdown.headingTextFromMarkdown?.(markdown);
+    const title = (headingTitle || document.title || "Untitled")
       .replace(/\s+/g, " ")
       .trim();
     return [
@@ -161,7 +161,7 @@
     }, delay);
   }
 
-  function decorateToast(toast) {
+  function decorateToast(toast, delay) {
     Object.assign(toast.style, {
       position: "fixed",
       right: "20px",
@@ -192,7 +192,7 @@
     toast.addEventListener("mouseleave", () => {
       toast.style.boxShadow = "0 18px 42px rgba(15, 23, 42, 0.18)";
       toast.style.transform = "translateY(0)";
-      scheduleToastRemoval(toast, 3200);
+      scheduleToastRemoval(toast, delay);
     });
   }
 
@@ -229,7 +229,7 @@
     removeToast();
     const toast = document.createElement("div");
     toast.id = TOAST_ID;
-    decorateToast(toast);
+    decorateToast(toast, delay);
 
     const heading = document.createElement("strong");
     heading.textContent = message;
@@ -256,7 +256,7 @@
     const message = kind === "save"
       ? "Saved as .md"
       : kind === "obsidian"
-        ? "Sent to Obsidian"
+        ? "Copied — opening Obsidian…"
         : "Markdown copied";
 
     const saveAction = ["Save .md", () => {
@@ -314,7 +314,10 @@
 
   function sendToObsidian() {
     const { obsidianVault, obsidianFolder } = lastResult.settings;
-    const name = lastResult.filename.replace(/\.md$/, "");
+    const name = lastResult.filename.replace(/\.md$/, "")
+      .replace(/[#^[\]]/g, "")
+      .replace(/-{2,}/g, "-")
+      .replace(/^-+|-+$/g, "") || "converted";
     const file = obsidianFolder ? `${obsidianFolder}/${name}` : name;
     location.href = `obsidian://new?vault=${encodeURIComponent(obsidianVault)}&file=${encodeURIComponent(file)}&clipboard`;
   }
@@ -332,8 +335,12 @@
 
   function onMouseMove(event) {
     if (isExtensionUi(event.target)) return;
-    if (event.target === baseElement) return;
-    baseElement = event.target;
+    const target = event.target === document.documentElement
+      ? document.body || event.target
+      : event.target;
+    if (target === baseElement) return;
+    if (expandDepth > 0 && resolveSelectedElement()?.contains(target)) return;
+    baseElement = target;
     expandDepth = 0;
     updateHighlight();
   }
@@ -348,9 +355,9 @@
     event.stopPropagation();
 
     const element = resolveSelectedElement() || event.target;
-    const settings = await chrome.storage.sync.get(SETTING_DEFAULTS);
     const currentMode = mode;
     stopSelectionMode();
+    const settings = await chrome.storage.sync.get(SETTING_DEFAULTS);
 
     try {
       const { convertElementToMarkdown, convertElementToPlainText, fileNameFromMarkdown } = window.ElementToMarkdown;

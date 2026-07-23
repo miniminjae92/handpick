@@ -11,6 +11,9 @@ const MENU_ITEMS = [
   { id: "etm-plain", mode: "plain", title: "Copy as plain text" }
 ];
 
+// "page" alone excludes right-clicks on links, images, and media.
+const MENU_CONTEXTS = ["page", "selection", "link", "image", "video", "audio", "editable"];
+
 async function flashActivationError(tabId) {
   try {
     await chrome.action.setBadgeBackgroundColor({ tabId, color: "#b42318" });
@@ -28,22 +31,25 @@ async function flashActivationError(tabId) {
   }
 }
 
-async function activateSelectionMode(mode, targetTab) {
+async function activateSelectionMode(mode, targetTab, frameId) {
   let tab = targetTab;
   if (!tab) {
     [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
   }
   if (!tab?.id) return { ok: false };
 
+  const target = { tabId: tab.id };
+  if (frameId) target.frameIds = [frameId];
+
   try {
     await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
+      target,
       files: ["vendor/turndown.js", "converter-core.js", "content-script.js"]
     });
     await chrome.tabs.sendMessage(tab.id, {
       type: "element-to-markdown:activate",
       mode
-    });
+    }, frameId ? { frameId } : undefined);
     return { ok: true };
   } catch {
     await flashActivationError(tab.id);
@@ -56,14 +62,14 @@ chrome.runtime.onInstalled.addListener((details) => {
     chrome.contextMenus.create({
       id: "etm-root",
       title: "Element to Markdown",
-      contexts: ["page", "selection"]
+      contexts: MENU_CONTEXTS
     });
     for (const item of MENU_ITEMS) {
       chrome.contextMenus.create({
         id: item.id,
         parentId: "etm-root",
         title: item.title,
-        contexts: ["page", "selection"]
+        contexts: MENU_CONTEXTS
       });
     }
   });
@@ -75,7 +81,7 @@ chrome.runtime.onInstalled.addListener((details) => {
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   const item = MENU_ITEMS.find((candidate) => candidate.id === info.menuItemId);
-  if (item) activateSelectionMode(item.mode, tab);
+  if (item) activateSelectionMode(item.mode, tab, info.frameId);
 });
 
 chrome.commands.onCommand.addListener((command) => {
@@ -95,12 +101,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message?.type === "element-to-markdown:open-report") {
-    chrome.storage.session.set({
-      pendingBugReport: message.payload
-    }).then(() => {
-      chrome.tabs.create({
-        url: chrome.runtime.getURL("report.html")
+    const openTab = () => chrome.tabs.create({ url: chrome.runtime.getURL("report.html") });
+    const clip = (text) => (typeof text === "string" ? text.slice(0, 200000) : text);
+    chrome.storage.session.set({ pendingBugReport: message.payload })
+      .then(openTab)
+      .catch(() => {
+        // storage.session quota exceeded on huge captures — retry clipped, but
+        // always open the report page.
+        const payload = message.payload || {};
+        chrome.storage.session.set({
+          pendingBugReport: {
+            inputHtml: clip(payload.inputHtml),
+            actualMarkdown: clip(payload.actualMarkdown),
+            actualPlainText: clip(payload.actualPlainText),
+            truncated: true
+          }
+        }).then(openTab, openTab);
       });
-    });
   }
 });
