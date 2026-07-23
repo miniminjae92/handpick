@@ -95,17 +95,22 @@ Release flow:
 At minimum after code changes:
 
 ```bash
-node --check extension/background.js
-node --check extension/content-script.js
-node --check extension/report.js
-node --check shared/converter-core.js
-./scripts/sync-extension-assets.sh
+npm ci        # first time only
+npm run check # syntax checks + fixture tests + sync drift check
 ```
+
+`npm run check` runs:
+
+- `check:syntax`: `node --check` on extension and shared scripts
+- `test`: Node fixture runner (`test/fixtures.test.mjs`, jsdom) over `fixtures/index.json`
+- `check:drift`: fails if `extension/` copies differ from `shared/` (fix with `./scripts/sync-extension-assets.sh`)
+
+CI (`.github/workflows/ci.yml`) runs the same checks on pushes and pull requests.
 
 Use:
 
 - `dev.html` for manual reproduction
-- `fixtures.html` for saved regression cases
+- `fixtures.html` for visually comparing saved regression cases
 
 ## Privacy constraints
 
