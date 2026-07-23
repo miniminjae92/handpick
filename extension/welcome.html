@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Welcome to Element to Markdown</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main>
+    <h1>Element to Markdown</h1>
+    <section>
+      <h2>Capture your first element</h2>
+      <ol>
+        <li>Open any normal webpage (browser pages like this one are restricted).</li>
+        <li>Click the <strong>Element to Markdown</strong> toolbar icon and pick an action — or right-click the page, or use a keyboard shortcut.</li>
+        <li>Click the element you want. Use <code>↑</code> / <code>↓</code> to widen or narrow the selection, <code>Esc</code> to cancel.</li>
+      </ol>
+      <p>
+        The toast in the corner offers the same capture as plain text or HTML,
+        and a reviewable bug report draft if the conversion looks wrong.
+      </p>
+    </section>
+    <section class="secondary">
+      <h2>Default shortcuts</h2>
+      <ul>
+        <li><code>Alt/Option + Shift + C</code> — copy as Markdown</li>
+        <li><code>Alt/Option + Shift + S</code> — save as <code>.md</code></li>
+        <li>Copy plain text has no default — assign one if you use it.</li>
+      </ul>
+      <button id="shortcutsButton" type="button">Manage keyboard shortcuts</button>
+    </section>
+    <section class="secondary">
+      <h2>Make it yours</h2>
+      <p>
+        Choose Standard or Obsidian output, control source frontmatter,
+        and set an Obsidian vault to save notes directly into it.
+      </p>
+      <button id="optionsButton" type="button">Open options</button>
+    </section>
+    <div id="status" role="status"></div>
+  </main>
+  <script src="welcome.js"></script>
+</body>
+</html>

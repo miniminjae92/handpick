@@ -6,7 +6,7 @@
   "scripts": {
     "test": "node --test",
     "check": "npm run check:syntax && npm test && npm run check:drift",
-    "check:syntax": "node --check extension/background.js && node --check extension/content-script.js && node --check extension/report.js && node --check extension/options.js && node --check shared/converter-core.js",
+    "check:syntax": "node --check extension/background.js && node --check extension/content-script.js && node --check extension/report.js && node --check extension/options.js && node --check extension/popup.js && node --check extension/welcome.js && node --check shared/converter-core.js",
     "check:drift": "./scripts/check-sync-drift.sh"
   },
   "devDependencies": {

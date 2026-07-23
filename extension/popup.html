@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Element to Markdown</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main>
+    <h1>Element to Markdown</h1>
+    <p class="lead">Pick an action, then click the element you want to capture.</p>
+    <div id="actions">
+      <button type="button" data-mode="copy">
+        <span>Copy Markdown</span>
+        <kbd data-command="copy-as-markdown"></kbd>
+      </button>
+      <button type="button" data-mode="save">
+        <span>Save .md file</span>
+        <kbd data-command="save-as-markdown"></kbd>
+      </button>
+      <button type="button" data-mode="obsidian">
+        <span>Save to Obsidian</span>
+        <kbd id="obsidianHint"></kbd>
+      </button>
+      <button type="button" data-mode="plain">
+        <span>Copy plain text</span>
+        <kbd data-command="copy-as-plain-text"></kbd>
+      </button>
+    </div>
+    <p id="notice" role="status" hidden></p>
+    <footer>
+      <button type="button" class="link" id="optionsLink">Options</button>
+      <button type="button" class="link" id="shortcutsLink">Shortcuts</button>
+    </footer>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>
