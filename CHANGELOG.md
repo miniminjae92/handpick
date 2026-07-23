@@ -9,10 +9,10 @@
 - Added optional source frontmatter (title, source URL, capture time) with a `frontmatterMode` setting.
 - Added visible error feedback: action badge on restricted pages, error toasts for clipboard and conversion failures.
 - Rewrote options page guidance for first-time users and redesigned the in-page selection hint.
-- Preserved KaTeX/MathJax math as `$…$` / `$$…$$` instead of destroying it.
-- Resolved relative link/image URLs against the page and recovered lazy-loaded images (`data-src`, `srcset`, `picture`).
-- Mapped GitHub alerts and Docusaurus admonitions to Obsidian callouts.
-- Kept hard line breaks, switched horizontal rules to `---`, tightened list markers to `- `, and stopped swallowing blank lines before non-list blocks.
+- Preserved KaTeX/MathJax math as `$…$` / `$$…$$` instead of destroying it, including math inside table cells.
+- Resolved relative link/image URLs against the page (keeping in-page `#anchor` links) and recovered lazy-loaded images (`data-src`, `srcset`, `picture`).
+- Mapped GitHub alerts and Docusaurus/Sphinx admonitions to Obsidian callouts, including nested callouts.
+- Kept hard line breaks, switched horizontal rules to `---`, tightened list markers to `- `, and stopped swallowing blank lines before non-list blocks. Code fences now pass through byte-exact.
 - Removed unnecessary `web_accessible_resources` exposure of extension pages.
 - Added a Node fixture runner, sync drift check, and GitHub Actions CI.
 

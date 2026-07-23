@@ -36,16 +36,55 @@
       .replace(/\]/g, "\\]");
   }
 
-  function normalizeBlankLines(markdown) {
-    return markdown
-      .replace(/^((?:[-*]|\d+\.)\s[^\n]*)\n[ \t]*\n(?=[ \t]*(?:[-*]|\d+\.)\s)/gm, "$1\n")
+  function normalizeMarkdownOutsideFences(text) {
+    return text
+      .replace(/^((?:[ \t]|> )*(?:[-*]|\d+\.)\s[^\n]*)\n(?:[ \t]|>)*\n(?=(?:[ \t]|> )*(?:[-*]|\d+\.)\s)/gm, "$1\n")
+      .replace(/^((?:[ \t]*>)*)[ \t]+$/gm, "$1")
       .replace(/[ \t]+\n/g, (match) => (/ {2}/.test(match) ? "  \n" : "\n"))
-      .replace(/\n{3,}/g, "\n\n")
-      .replace(/^\s+|\s+$/g, "");
+      .replace(/\n{3,}/g, "\n\n");
+  }
+
+  function normalizeBlankLines(markdown) {
+    // Code fences must pass through untouched: the blank-line and trailing
+    // whitespace rewrites would silently alter code content.
+    const fencePattern = /^[ \t]*(`{3,})[^\n]*\n[\s\S]*?\n[ \t]*\1[ \t]*$/gm;
+    let normalized = "";
+    let last = 0;
+    for (const match of markdown.matchAll(fencePattern)) {
+      normalized += normalizeMarkdownOutsideFences(markdown.slice(last, match.index)) + match[0];
+      last = match.index + match[0].length;
+    }
+    normalized += normalizeMarkdownOutsideFences(markdown.slice(last));
+    return normalized.replace(/^\s+|\s+$/g, "");
+  }
+
+  function sanitizeInlineTex(tex) {
+    // KaTeX allows nested math via \text{... $x$ ...}; a bare $ would close the
+    // surrounding $...$ early, so swap unescaped pairs for \( \).
+    let open = false;
+    return tex.replace(/(\\*)\$/g, (match, backslashes) => {
+      if (backslashes.length % 2) return match;
+      open = !open;
+      return backslashes + (open ? "\\(" : "\\)");
+    });
+  }
+
+  function demoteDisplayMathInTableCell(text) {
+    // Table cells cannot hold multi-line $$ blocks (newlines become <br>).
+    return text.replace(/\$\$\n([\s\S]*?)\n\$\$/g, (match, tex) => `$${sanitizeInlineTex(tex.replace(/\n/g, " "))}$`);
+  }
+
+  function escapePipesOutsideMath(text) {
+    // A pipe inside $...$ must stay LaTeX (\| means ‖), not become \|.
+    return text.replace(/\$(?:\\.|[^$\\\n])*\$|\|/g, (match) =>
+      match === "|"
+        ? "\\|"
+        : match.replace(/\\\|/g, "\\Vert ").replace(/\|/g, "\\vert ")
+    );
   }
 
   function escapeTableCell(text) {
-    return normalizeBlankLines(text).replace(/\|/g, "\\|").replace(/\n/g, "<br>");
+    return escapePipesOutsideMath(demoteDisplayMathInTableCell(normalizeBlankLines(text))).replace(/\n/g, "<br>");
   }
 
   function textWithCodeLineBreaks(node) {
@@ -237,7 +276,7 @@
         if (!tex) return "";
         return node.hasAttribute("data-etm-math-display")
           ? `\n\n$$\n${tex}\n$$\n\n`
-          : `$${tex}$`;
+          : `$${sanitizeInlineTex(tex)}$`;
       }
     });
 
@@ -368,7 +407,7 @@
 
   function tableToMarkdown(table) {
     const rows = Array.from(table.querySelectorAll("tr")).map((row) =>
-      Array.from(row.children).map((cell) => normalizeBlankLines(inlineChildren(cell)).replace(/\|/g, "\\|"))
+      Array.from(row.children).map((cell) => escapeTableCell(inlineChildren(cell)))
     );
 
     if (!rows.length) return "";
@@ -391,7 +430,7 @@
 
     if (node.hasAttribute("data-etm-math")) {
       const tex = node.getAttribute("data-etm-math");
-      return node.hasAttribute("data-etm-math-display") ? `$$\n${tex}\n$$` : `$${tex}$`;
+      return node.hasAttribute("data-etm-math-display") ? `$$\n${tex}\n$$` : `$${sanitizeInlineTex(tex)}$`;
     }
 
     const tag = node.tagName;
@@ -567,9 +606,13 @@
           important: "important",
           success: "success"
         };
+        // Sphinx/ReadTheDocs mark the type as a bare class token
+        // ("admonition warning") and title the box with .admonition-title.
+        const typeToken = match?.[1]?.toLowerCase()
+          || Array.from(node.classList).find((token) => map[token.toLowerCase()])?.toLowerCase();
         return {
-          type: map[match?.[1]?.toLowerCase()] || "note",
-          title: node.querySelector(".admonition-heading, [class*='admonitionHeading']"),
+          type: map[typeToken] || "note",
+          title: node.querySelector(".admonition-heading, .admonition-title, [class*='admonitionHeading']"),
           content: node
         };
       }
@@ -605,7 +648,9 @@
           if (title) title.remove();
           blockquote.setAttribute("data-obsidian-callout", type);
         }
-        blockquote.innerHTML = content.innerHTML;
+        // Move (not copy) children so nested callouts stay attached to root
+        // and get converted on their own pass.
+        blockquote.append(...content.childNodes);
         callout.replaceWith(blockquote);
       });
     }
@@ -625,9 +670,20 @@
     root.querySelectorAll(".katex").forEach((katex) => {
       if (!root.contains(katex)) return;
       const tex = katex.querySelector("annotation[encoding='application/x-tex']")?.textContent.trim();
-      if (!tex) return;
+      if (!tex) {
+        // No LaTeX source (e.g. KaTeX output: "html"): keep one rendered
+        // branch as plain text so the aria-hidden cleanup cannot drop it.
+        const fallbackSource = katex.querySelector(".katex-mathml") || katex.querySelector(".katex-html") || katex;
+        katex.replaceWith(document.createTextNode(fallbackSource.textContent.replace(/\s+/g, " ").trim()));
+        return;
+      }
       const displayWrapper = katex.closest(".katex-display");
-      replaceWithMathToken(displayWrapper || katex, tex, Boolean(displayWrapper));
+      // Only swallow the wrapper when this is its sole math; the token check
+      // stops a second pass from replacing a wrapper that already holds one.
+      const soleMath = displayWrapper
+        && displayWrapper.querySelectorAll(".katex").length === 1
+        && !displayWrapper.querySelector("[data-etm-math]");
+      replaceWithMathToken(soleMath ? displayWrapper : katex, tex, Boolean(displayWrapper));
     });
 
     // MathJax v2 keeps the TeX source in a sibling script tag.
@@ -653,13 +709,39 @@
 
   const lazySrcAttributes = ["data-src", "data-lazy-src", "data-original", "data-actualsrc"];
 
+  function parseSrcsetCandidates(srcset) {
+    // Manual scan instead of split(",") — URLs may contain commas (data: URIs).
+    const input = (srcset || "").trim();
+    const candidates = [];
+    let i = 0;
+    while (i < input.length) {
+      while (i < input.length && /[\s,]/.test(input[i])) i += 1;
+      const urlStart = i;
+      while (i < input.length && !/\s/.test(input[i])) i += 1;
+      let url = input.slice(urlStart, i);
+      let descriptor = "";
+      if (/,$/.test(url)) {
+        url = url.replace(/,+$/, "");
+      } else {
+        while (i < input.length && /\s/.test(input[i])) i += 1;
+        const descriptorStart = i;
+        while (i < input.length && input[i] !== ",") i += 1;
+        descriptor = input.slice(descriptorStart, i).trim();
+        i += 1;
+      }
+      if (url) candidates.push({ url, descriptor });
+    }
+    return candidates;
+  }
+
   function bestUrlFromSrcset(srcset) {
     let best = "";
     let bestWidth = -1;
-    for (const candidate of (srcset || "").split(",")) {
-      const [url, descriptor] = candidate.trim().split(/\s+/);
-      if (!url) continue;
-      const widthMatch = descriptor ? descriptor.match(/^(\d+)w$/) : null;
+    for (const { url, descriptor } of parseSrcsetCandidates(srcset)) {
+      if (url.startsWith("data:")) continue;
+      // w and x descriptors never mix in one srcset, so bare numeric
+      // comparison picks the largest of either.
+      const widthMatch = descriptor.match(/^(\d+(?:\.\d+)?)[wx]$/);
       const width = widthMatch ? Number(widthMatch[1]) : 0;
       if (width > bestWidth) {
         bestWidth = width;
@@ -702,7 +784,7 @@
 
     const rewrite = (node, attribute) => {
       const value = (node.getAttribute(attribute) || "").trim();
-      if (!value || /^[a-z][a-z0-9+.-]*:/i.test(value)) return;
+      if (!value || value.startsWith("#") || /^[a-z][a-z0-9+.-]*:/i.test(value)) return;
       try {
         node.setAttribute(attribute, new URL(value, base).href);
       } catch {
@@ -868,8 +950,15 @@
   }
 
 
+  function disambiguateLeadingHr(markdown) {
+    // A note starting with "---" reads as a frontmatter delimiter in Obsidian;
+    // "***" is the same thematic break without that ambiguity.
+    return markdown.replace(/^---(?=\n|$)/, "***");
+  }
+
   function convertElementToMarkdown(element, options = {}) {
-    return convertWithTurndown(element, options) || normalizeBlankLines(toMarkdown(cleanupContent(element, options)));
+    const markdown = convertWithTurndown(element, options) || normalizeBlankLines(toMarkdown(cleanupContent(element, options)));
+    return disambiguateLeadingHr(markdown);
   }
 
   function convertElementToPlainText(element, options = {}) {

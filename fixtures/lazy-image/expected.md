@@ -5,3 +5,5 @@
 ![사진](https://cdn.example.com/photo-800.jpg)
 
 ![반응형](https://cdn.example.com/pic-1280.jpg)
+
+![고해상도](https://cdn.example.com/high-2x.jpg)

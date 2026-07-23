@@ -42,7 +42,7 @@ Element to Markdown is built for saving AI answers and useful web content into p
 - Choose between `Standard Markdown` and `Obsidian` output.
 - Preserve KaTeX/MathJax math as `$…$` and `$$…$$` LaTeX.
 - Resolve relative links and lazy-loaded images to real URLs.
-- Convert GitHub alerts and Docusaurus admonitions into Obsidian callouts.
+- Convert GitHub alerts and Docusaurus/Sphinx admonitions into Obsidian callouts.
 - Create a reviewable bug report draft when conversion fails.
 
 ## How to use

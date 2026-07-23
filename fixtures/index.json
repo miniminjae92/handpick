@@ -88,5 +88,27 @@
     "name": "hard-line-break",
     "input": "hard-line-break/input.html",
     "expected": "hard-line-break/expected.md"
+  },
+  {
+    "name": "code-block-blank-lines",
+    "input": "code-block-blank-lines/input.html",
+    "expected": "code-block-blank-lines/expected.md"
+  },
+  {
+    "name": "sphinx-admonition",
+    "input": "sphinx-admonition/input.html",
+    "expected": "sphinx-admonition/expected.md",
+    "outputFormat": "obsidian"
+  },
+  {
+    "name": "table-cell-math",
+    "input": "table-cell-math/input.html",
+    "expected": "table-cell-math/expected.md"
+  },
+  {
+    "name": "nested-callout",
+    "input": "nested-callout/input.html",
+    "expected": "nested-callout/expected.md",
+    "outputFormat": "obsidian"
   }
 ]
