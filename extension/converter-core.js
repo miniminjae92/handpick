@@ -724,7 +724,7 @@
   }
 
   function fileNameFromMarkdown(markdown) {
-    const firstHeading = markdown.match(/^#\s+(.+)$/m);
+    const firstHeading = markdown.match(/^#{1,6}\s+(.+)$/m);
     const baseName = firstHeading ? firstHeading[1] : "converted";
     const safeName = baseName.replace(/[\\/:*?"<>|]/g, "").replace(/\s+/g, "-").slice(0, 80) || "converted";
     return `${safeName}.md`;
