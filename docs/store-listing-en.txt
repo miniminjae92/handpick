@@ -1,0 +1,23 @@
+Element to Markdown lets you select any element on a webpage and quickly copy or save it as clean Markdown.
+
+It is especially useful when moving AI-generated answers, technical docs, blog posts, tables, or code-heavy web content into your personal notes. Compared with ordinary copy and paste, it aims to preserve structure such as headings, lists, tables, blockquotes, and code blocks more reliably.
+
+Key features:
+- Start a capture from the toolbar icon, or with Option + Shift + C (copy) / Option + Shift + S (save)
+- Select the exact element you want, then widen or narrow it with the ↑ / ↓ keys
+- Save the selection as a .md file, or straight into an Obsidian vault
+- Add optional source frontmatter (title, source URL, capture time) to saved notes
+- Copy plain text or HTML from the same selection
+- Choose Standard Markdown or Obsidian output, including supported callouts
+- Preserve KaTeX/MathJax math as LaTeX
+- Resolve relative links and lazy-loaded images to real URLs
+- Create a reviewable bug report draft when conversion fails
+- Local, browser-side processing by default
+
+Useful for:
+- Saving AI answers into Obsidian, Notion, or Markdown notes
+- Capturing only the exact section you want from a webpage
+- Preserving tables, checklists, and code blocks more cleanly
+
+Privacy:
+Element to Markdown only processes the element you explicitly select. Selected HTML is not uploaded automatically, and bug reports are only shared when you review and submit them yourself.
