@@ -1,5 +1,9 @@
 # Chrome Web Store listing copy
 
+> 대시보드의 설명란은 마크다운을 렌더링하지 않는다. 붙여넣기는 평문 버전을 쓴다:
+> [`store-listing-en.txt`](store-listing-en.txt) / [`store-listing-ko.txt`](store-listing-ko.txt).
+> 이 문서를 고치면 평문 두 파일도 함께 갱신한다.
+
 ## Name
 
 Element to Markdown

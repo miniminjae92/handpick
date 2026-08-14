@@ -7,7 +7,7 @@
 The product has two surfaces:
 
 - Chrome extension in `extension/`
-- Web fallback in `index.html`
+- Web fallback in `demo.html` (`index.html` is the product landing page)
 
 ## Product invariants
 
