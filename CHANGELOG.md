@@ -15,6 +15,9 @@
 - Kept hard line breaks, switched horizontal rules to `---`, tightened list markers to `- `, and stopped swallowing blank lines before non-list blocks. Code fences now pass through byte-exact.
 - Removed unnecessary `web_accessible_resources` exposure of extension pages.
 - Added a Node fixture runner, sync drift check, and GitHub Actions CI.
+- Stopped treating code spans and prose dollars (`Costs $5 | was $10`) in table cells as math, so their pipes escape as `\|` instead of becoming `\vert`.
+- Protected code fences quoted inside blockquotes/callouts from blank-line normalization.
+- Kept custom admonition titles as `> [!type] Title` in Obsidian output instead of dropping them.
 
 ## 0.1.1
 

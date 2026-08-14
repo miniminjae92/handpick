@@ -46,8 +46,9 @@
 
   function normalizeBlankLines(markdown) {
     // Code fences must pass through untouched: the blank-line and trailing
-    // whitespace rewrites would silently alter code content.
-    const fencePattern = /^[ \t]*(`{3,})[^\n]*\n[\s\S]*?\n[ \t]*\1[ \t]*$/gm;
+    // whitespace rewrites would silently alter code content. Fences quoted
+    // inside blockquotes/callouts ("> ```") need the same protection.
+    const fencePattern = /^(?:[ \t]|>)*(`{3,})[^\n]*\n[\s\S]*?\n(?:[ \t]|>)*\1[ \t]*$/gm;
     let normalized = "";
     let last = 0;
     for (const match of markdown.matchAll(fencePattern)) {
@@ -75,12 +76,14 @@
   }
 
   function escapePipesOutsideMath(text) {
-    // A pipe inside $...$ must stay LaTeX (\| means ‖), not become \|.
-    return text.replace(/\$(?:\\.|[^$\\\n])*\$|\|/g, (match) =>
-      match === "|"
-        ? "\\|"
-        : match.replace(/\\\|/g, "\\Vert ").replace(/\|/g, "\\vert ")
-    );
+    // A pipe inside $...$ must stay LaTeX (\| means ‖), not become \|. Code
+    // spans and prose dollars ("Costs $5 | was $10") are not math: backtick
+    // spans win over dollars, and math delimiters must hug non-space content.
+    return text.replace(/(`+)(?:(?!\1)[\s\S])*\1|\$(?=\S)(?:\\.|[^$\\\n])*?(?<=\S)\$|\|/g, (match) => {
+      if (match === "|") return "\\|";
+      if (match.startsWith("`")) return match.replace(/\|/g, "\\|");
+      return match.replace(/\\\|/g, "\\Vert ").replace(/\|/g, "\\vert ");
+    });
   }
 
   function escapeTableCell(text) {
@@ -303,11 +306,12 @@
         },
         replacement(content, node) {
           const type = node.getAttribute("data-obsidian-callout") || "note";
+          const title = node.getAttribute("data-obsidian-callout-title");
           const body = normalizeBlankLines(content)
             .split("\n")
             .map((line) => line ? `> ${line}` : ">")
             .join("\n");
-          return `\n\n> [!${type}]\n${body}\n\n`;
+          return `\n\n> [!${type}]${title ? ` ${title}` : ""}\n${body}\n\n`;
         }
       });
 
@@ -638,6 +642,17 @@
     }
   ];
 
+  // Default admonition headings ("Note", "WARNING", "팁", …) just restate the
+  // callout type; only user-written titles are worth keeping in the header.
+  // Covers English plus the Korean locale strings of Docusaurus/Sphinx themes.
+  const defaultCalloutTitles = new Set([
+    "note", "info", "tip", "hint", "important", "warning", "caution",
+    "danger", "error", "attention", "success", "secondary", "seealso",
+    "see also", "todo",
+    "노트", "팁", "정보", "힌트", "중요", "경고", "주의", "위험",
+    "오류", "에러", "성공", "참고"
+  ]);
+
   function normalizeCallouts(root, outputFormat = "standard") {
     for (const source of calloutSources) {
       root.querySelectorAll(source.selector).forEach((callout) => {
@@ -645,7 +660,13 @@
         const { type, title, content } = source.resolve(callout);
         const blockquote = document.createElement("blockquote");
         if (outputFormat === "obsidian") {
-          if (title) title.remove();
+          if (title) {
+            const titleText = title.textContent.replace(/\s+/g, " ").trim();
+            if (titleText && !defaultCalloutTitles.has(titleText.toLowerCase())) {
+              blockquote.setAttribute("data-obsidian-callout-title", titleText);
+            }
+            title.remove();
+          }
           blockquote.setAttribute("data-obsidian-callout", type);
         }
         // Move (not copy) children so nested callouts stay attached to root

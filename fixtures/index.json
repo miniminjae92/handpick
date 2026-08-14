@@ -110,5 +110,21 @@
     "input": "nested-callout/input.html",
     "expected": "nested-callout/expected.md",
     "outputFormat": "obsidian"
+  },
+  {
+    "name": "table-cell-code-pipe",
+    "input": "table-cell-code-pipe/input.html",
+    "expected": "table-cell-code-pipe/expected.md"
+  },
+  {
+    "name": "blockquote-code-fence",
+    "input": "blockquote-code-fence/input.html",
+    "expected": "blockquote-code-fence/expected.md"
+  },
+  {
+    "name": "admonition-custom-title",
+    "input": "admonition-custom-title/input.html",
+    "expected": "admonition-custom-title/expected.md",
+    "outputFormat": "obsidian"
   }
 ]
