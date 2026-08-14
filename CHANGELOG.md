@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0
 
 - Added a toolbar popup entry point.
 - Added onboarding page on first install.
