@@ -12,20 +12,24 @@ The product has two surfaces:
 ## Product invariants
 
 - Manual element selection is intentional; do not replace it with automatic extraction as the primary workflow.
-- Primary actions:
-  - `Option + Shift + C`: copy selected element as Markdown
-  - `Option + Shift + S`: save selected element as Markdown
-- Available commands:
+- Entry points (keep both working):
+  - toolbar action popup (`popup.html`)
+  - keyboard shortcuts (`Option + Shift + C` copy, `Option + Shift + S` save)
+- No right-click context menu by product decision (2026-07-23): it clutters the page menu and the popup covers the same flows. Do not re-add without an explicit product decision.
+- Available capture modes:
   - copy Markdown
-  - save Markdown
+  - save Markdown (`.md` download)
+  - save to Obsidian (`obsidian://new` + clipboard; requires vault name in options)
   - copy plain text
+- In selection mode, `↑` / `↓` widen or narrow the selected element and `Esc` cancels; keep the on-screen hint in sync with these keys.
 - Secondary actions live in the toast:
   - save Markdown
   - copy Markdown
   - copy plain text
   - copy HTML
   - report issue
-- Do not add metadata such as source URL, page title, or timestamps to converted Markdown unless the user explicitly changes product direction.
+- Source frontmatter (`title`, `source`, `created`) follows the `frontmatterMode` setting: `save` (default; file/Obsidian outputs only), `always` (also Markdown copies), `never`. Plain text output never includes it.
+- Activation failures must be visible: restricted pages flash a badge on the action icon and the popup explains; clipboard and conversion failures show an error toast.
 - Supported output formats:
   - `standard`: default, callouts become blockquotes
   - `obsidian`: supported callouts become Obsidian callouts
@@ -46,8 +50,10 @@ The product has two surfaces:
 ```
 
 - Extension flow:
-  - `background.js` injects scripts and opens report drafts.
-  - `content-script.js` handles selection UI, toast actions, copy/save/report actions.
+  - `background.js` injects scripts, owns badge error feedback, and opens report drafts and the onboarding page.
+  - `content-script.js` handles selection UI (hint, scope keys), toast actions, frontmatter, copy/save/Obsidian/report actions.
+  - `popup.html` / `popup.js` / `popup.css` are the toolbar entry point and show shortcut state.
+  - `welcome.html` / `welcome.js` onboard new installs.
   - `report.html` / `report.js` / `report.css` handle user-reviewed bug report drafts.
 
 ## Bug handling workflow
@@ -95,17 +101,22 @@ Release flow:
 At minimum after code changes:
 
 ```bash
-node --check extension/background.js
-node --check extension/content-script.js
-node --check extension/report.js
-node --check shared/converter-core.js
-./scripts/sync-extension-assets.sh
+npm ci        # first time only
+npm run check # syntax checks + fixture tests + sync drift check
 ```
+
+`npm run check` runs:
+
+- `check:syntax`: `node --check` on extension and shared scripts
+- `test`: Node fixture runner (`test/fixtures.test.mjs`, jsdom) over `fixtures/index.json`
+- `check:drift`: fails if `extension/` copies differ from `shared/` (fix with `./scripts/sync-extension-assets.sh`)
+
+CI (`.github/workflows/ci.yml`) runs the same checks on pushes and pull requests.
 
 Use:
 
 - `dev.html` for manual reproduction
-- `fixtures.html` for saved regression cases
+- `fixtures.html` for visually comparing saved regression cases
 
 ## Privacy constraints
 

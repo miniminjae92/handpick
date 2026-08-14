@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,26 +9,82 @@
 <body>
   <main>
     <h1>Element to Markdown</h1>
+    <p class="intro">
+      Click the toolbar icon on any page, pick an action, then click the element you want to capture.
+      These settings shape what you get.
+    </p>
+
     <section>
-      <label for="outputFormat">Output format</label>
-      <select id="outputFormat">
+      <h2>Output format</h2>
+      <select id="outputFormat" aria-label="Output format">
         <option value="standard">Standard Markdown</option>
         <option value="obsidian">Obsidian</option>
       </select>
-      <p>
-        Standard Markdown favors broad compatibility.
-        Obsidian adapts supported structures to Markdown conventions that work better in Obsidian.
+      <ul class="help">
+        <li><strong>Standard Markdown</strong> — the safe default. Works in any Markdown app.</li>
+        <li><strong>Obsidian</strong> — same output, plus supported alert boxes on webpages become Obsidian callouts.</li>
+      </ul>
+    </section>
+
+    <section class="secondary">
+      <h2>Source frontmatter</h2>
+      <p class="help">
+        Frontmatter is a small header at the top of a note that records where and when you captured it:
+      </p>
+      <pre class="example">---
+title: "How to brew pour-over coffee"
+source: "https://example.com/pour-over-guide"
+created: 2026-07-23T14:05:00.000Z
+---</pre>
+      <select id="frontmatterMode" aria-label="When to add frontmatter">
+        <option value="save">Add it when saving a file or sending to Obsidian</option>
+        <option value="always">Also add it when copying Markdown</option>
+        <option value="never">Never add it</option>
+      </select>
+      <p class="help">
+        The default keeps copies clean for pasting into existing notes.
+        Plain-text copies never include frontmatter.
       </p>
     </section>
+
+    <section class="secondary">
+      <h2>Save to Obsidian</h2>
+      <p class="help">
+        The <strong>Save to Obsidian</strong> action creates the note directly in your vault.
+        It needs the Obsidian desktop app installed.
+      </p>
+
+      <label for="obsidianVault">Vault name</label>
+      <input id="obsidianVault" type="text" placeholder="My Notes" autocomplete="off">
+      <p class="help">
+        Type your vault's name exactly as Obsidian shows it, including spaces.
+        You can see it in Obsidian's window title, or in the vault switcher
+        at the bottom-left corner of Obsidian.
+      </p>
+
+      <label for="obsidianFolder" class="stacked">Folder inside the vault <span class="optional">optional</span></label>
+      <input id="obsidianFolder" type="text" placeholder="Clippings" autocomplete="off">
+      <p class="help">
+        Where new notes land — for example <code>Clippings</code> or <code>Inbox/Web</code>.
+        Leave it empty to save at the top level of the vault.
+      </p>
+
+      <p class="help note">
+        The first save asks the browser for permission to open Obsidian — allow it once and
+        it won't ask again.
+      </p>
+    </section>
+
     <section class="secondary">
       <h2>Keyboard shortcuts</h2>
-      <ul>
-        <li>Copy Markdown</li>
-        <li>Save Markdown</li>
-        <li>Copy plain text</li>
+      <ul class="help">
+        <li><strong>Copy Markdown</strong> — default <code>Alt/Option + Shift + C</code></li>
+        <li><strong>Save Markdown</strong> — default <code>Alt/Option + Shift + S</code></li>
+        <li><strong>Copy plain text</strong> — no default; assign one below if you use it.</li>
       </ul>
       <button id="shortcutsButton" type="button">Manage keyboard shortcuts</button>
     </section>
+
     <div id="status" role="status"></div>
   </main>
   <script src="options.js"></script>

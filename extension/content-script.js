@@ -3,11 +3,30 @@
 
   const HIGHLIGHT_ID = "element-to-markdown-highlight";
   const TOAST_ID = "element-to-markdown-toast";
+  const HINT_ID = "element-to-markdown-hint";
+
+  const SETTING_DEFAULTS = {
+    outputFormat: "standard",
+    frontmatterMode: "save",
+    obsidianVault: "",
+    obsidianFolder: "Clippings"
+  };
 
   let mode = null;
-  let highlightedElement = null;
+  let baseElement = null;
+  let expandDepth = 0;
   let lastResult = null;
   let toastTimer = null;
+
+  function resolveSelectedElement(depth = expandDepth) {
+    let element = baseElement;
+    for (let step = 0; step < depth && element; step++) {
+      const parent = element.parentElement;
+      if (!parent || parent === document.documentElement) break;
+      element = parent;
+    }
+    return element;
+  }
 
   function ensureHighlight() {
     let highlight = document.getElementById(HIGHLIGHT_ID);
@@ -28,8 +47,9 @@
     return highlight;
   }
 
-  function updateHighlight(element) {
-    highlightedElement = element;
+  function updateHighlight() {
+    const element = resolveSelectedElement();
+    if (!element) return;
     const rect = element.getBoundingClientRect();
     const highlight = ensureHighlight();
     Object.assign(highlight.style, {
@@ -43,15 +63,162 @@
 
   function hideHighlight() {
     document.getElementById(HIGHLIGHT_ID)?.remove();
-    highlightedElement = null;
+    baseElement = null;
+    expandDepth = 0;
+  }
+
+  const MODE_LABELS = {
+    copy: "Copy Markdown",
+    save: "Save .md",
+    obsidian: "Save to Obsidian",
+    plain: "Copy plain text"
+  };
+
+  function createHintKey(label) {
+    const key = document.createElement("span");
+    key.textContent = label;
+    Object.assign(key.style, {
+      padding: "2px 7px",
+      borderRadius: "6px",
+      background: "rgba(255, 255, 255, 0.12)",
+      border: "1px solid rgba(255, 255, 255, 0.22)",
+      font: "11px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+      color: "#ffffff",
+      whiteSpace: "nowrap"
+    });
+    return key;
+  }
+
+  function createHintItem(keyLabel, text) {
+    const item = document.createElement("span");
+    Object.assign(item.style, {
+      display: "flex",
+      alignItems: "center",
+      gap: "6px"
+    });
+    const label = document.createElement("span");
+    label.textContent = text;
+    Object.assign(label.style, {
+      color: "rgba(255, 255, 255, 0.8)",
+      fontSize: "12px",
+      whiteSpace: "nowrap"
+    });
+    item.append(createHintKey(keyLabel), label);
+    return item;
+  }
+
+  function showHint(activeMode) {
+    hideHint();
+    const hint = document.createElement("div");
+    hint.id = HINT_ID;
+    Object.assign(hint.style, {
+      position: "fixed",
+      top: "16px",
+      left: "50%",
+      transform: "translate(-50%, -6px)",
+      opacity: "0",
+      transition: "opacity 160ms ease, transform 160ms ease",
+      zIndex: "2147483647",
+      pointerEvents: "none",
+      display: "flex",
+      alignItems: "center",
+      gap: "12px",
+      maxWidth: "calc(100vw - 32px)",
+      padding: "10px 16px",
+      borderRadius: "14px",
+      background: "rgba(15, 23, 42, 0.92)",
+      boxShadow: "0 12px 32px rgba(15, 23, 42, 0.35)",
+      font: "13px/1.4 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      color: "#ffffff"
+    });
+
+    const dot = document.createElement("span");
+    Object.assign(dot.style, {
+      width: "8px",
+      height: "8px",
+      borderRadius: "50%",
+      background: "#2dd4bf",
+      flex: "none"
+    });
+
+    const modeLabel = document.createElement("strong");
+    modeLabel.textContent = MODE_LABELS[activeMode] || "Capture";
+    Object.assign(modeLabel.style, {
+      fontWeight: "700",
+      whiteSpace: "nowrap"
+    });
+
+    const divider = document.createElement("span");
+    Object.assign(divider.style, {
+      width: "1px",
+      height: "16px",
+      background: "rgba(255, 255, 255, 0.25)",
+      flex: "none"
+    });
+
+    hint.append(
+      dot,
+      modeLabel,
+      divider,
+      createHintItem("Click", "capture"),
+      createHintItem("↑", "wider"),
+      createHintItem("↓", "narrower"),
+      createHintItem("Esc", "cancel")
+    );
+
+    document.documentElement.append(hint);
+    requestAnimationFrame(() => {
+      Object.assign(hint.style, {
+        opacity: "1",
+        transform: "translate(-50%, 0)"
+      });
+    });
+  }
+
+  function hideHint() {
+    document.getElementById(HINT_ID)?.remove();
   }
 
   function isExtensionUi(target) {
-    return target instanceof Element && Boolean(target.closest(`#${HIGHLIGHT_ID}, #${TOAST_ID}`));
+    return target instanceof Element
+      && Boolean(target.closest(`#${HIGHLIGHT_ID}, #${TOAST_ID}, #${HINT_ID}`));
+  }
+
+  function yamlQuote(value) {
+    return `"${String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+  }
+
+  function buildFrontmatter(markdown) {
+    const headingTitle = window.ElementToMarkdown.headingTextFromMarkdown?.(markdown);
+    const title = (headingTitle || document.title || "Untitled")
+      .replace(/\s+/g, " ")
+      .trim();
+    return [
+      "---",
+      `title: ${yamlQuote(title)}`,
+      `source: ${yamlQuote(location.href)}`,
+      `created: ${new Date().toISOString()}`,
+      "---",
+      "",
+      ""
+    ].join("\n");
+  }
+
+  function withFrontmatter(markdown, purpose) {
+    const frontmatterMode = lastResult?.settings?.frontmatterMode || SETTING_DEFAULTS.frontmatterMode;
+    const include = frontmatterMode === "always"
+      || (frontmatterMode !== "never" && purpose === "file");
+    return include ? `${buildFrontmatter(markdown)}${markdown}` : markdown;
   }
 
   async function copyText(text) {
-    await navigator.clipboard.writeText(text);
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      showErrorToast("Copy failed — click the page once, then try again.");
+      return false;
+    }
   }
 
   function saveMarkdown(markdown, filename) {
@@ -80,7 +247,7 @@
     }, delay);
   }
 
-  function decorateToast(toast) {
+  function decorateToast(toast, delay) {
     Object.assign(toast.style, {
       position: "fixed",
       right: "20px",
@@ -111,7 +278,7 @@
     toast.addEventListener("mouseleave", () => {
       toast.style.boxShadow = "0 18px 42px rgba(15, 23, 42, 0.18)";
       toast.style.transform = "translateY(0)";
-      scheduleToastRemoval(toast, 3200);
+      scheduleToastRemoval(toast, delay);
     });
   }
 
@@ -144,85 +311,76 @@
     return button;
   }
 
-  function showToast(kind) {
+  function buildToast(message, actions, { error = false, delay = 4500 } = {}) {
     removeToast();
     const toast = document.createElement("div");
     toast.id = TOAST_ID;
-    decorateToast(toast);
+    decorateToast(toast, delay);
 
-    const message = document.createElement("strong");
-    message.textContent = kind === "save" ? "Saved as .md" : "Markdown copied";
-    toast.append(message);
+    const heading = document.createElement("strong");
+    heading.textContent = message;
+    if (error) heading.style.color = "#b42318";
+    toast.append(heading);
 
-    const divider = document.createElement("div");
-    Object.assign(divider.style, {
-      height: "1px",
-      background: "rgba(15, 23, 42, 0.08)"
-    });
-    toast.append(divider);
-
-    const actions = kind === "save"
-      ? [
-        ["Copy Markdown", async () => {
-          await copyText(lastResult.markdown);
-          showToast("copy");
-        }],
-        ["Copy plain text", async () => {
-          await copyText(lastResult.plainText);
-          showPlainTextToast();
-        }],
-        ["Copy HTML", async () => {
-          await copyText(lastResult.html);
-          showHtmlToast();
-        }],
-        ["Report issue", () => {
-          openReportIssue();
-        }]
-      ]
-      : [
-        ["Save .md", () => {
-          saveMarkdown(lastResult.markdown, lastResult.filename);
-          showToast("save");
-        }],
-        ["Copy plain text", async () => {
-          await copyText(lastResult.plainText);
-          showPlainTextToast();
-        }],
-        ["Copy HTML", async () => {
-          await copyText(lastResult.html);
-          showHtmlToast();
-        }],
-        ["Report issue", () => {
-          openReportIssue();
-        }]
-      ];
-
-    actions.forEach(([label, onClick]) => {
-      toast.append(createToastButton(label, onClick));
-    });
+    if (actions.length) {
+      const divider = document.createElement("div");
+      Object.assign(divider.style, {
+        height: "1px",
+        background: "rgba(15, 23, 42, 0.08)"
+      });
+      toast.append(divider);
+      actions.forEach(([label, onClick]) => {
+        toast.append(createToastButton(label, onClick));
+      });
+    }
 
     document.documentElement.append(toast);
-    scheduleToastRemoval(toast, 4500);
+    scheduleToastRemoval(toast, delay);
+  }
+
+  function showToast(kind) {
+    const message = kind === "save"
+      ? "Saved as .md"
+      : kind === "obsidian"
+        ? "Copied — opening Obsidian…"
+        : "Markdown copied";
+
+    const saveAction = ["Save .md", () => {
+      saveMarkdown(withFrontmatter(lastResult.markdown, "file"), lastResult.filename);
+      showToast("save");
+    }];
+    const copyAction = ["Copy Markdown", async () => {
+      if (await copyText(withFrontmatter(lastResult.markdown, "copy"))) showToast("copy");
+    }];
+    const sharedActions = [
+      ["Copy plain text", async () => {
+        if (await copyText(lastResult.plainText)) showPlainTextToast();
+      }],
+      ["Copy HTML", async () => {
+        if (await copyText(lastResult.html)) showHtmlToast();
+      }],
+      ["Report issue", () => {
+        openReportIssue();
+      }]
+    ];
+
+    const actions = kind === "copy"
+      ? [saveAction, ...sharedActions]
+      : [copyAction, ...sharedActions];
+
+    buildToast(message, actions);
   }
 
   function showPlainTextToast() {
-    removeToast();
-    const toast = document.createElement("div");
-    toast.id = TOAST_ID;
-    toast.textContent = "Plain text copied";
-    decorateToast(toast);
-    document.documentElement.append(toast);
-    scheduleToastRemoval(toast, 2800);
+    buildToast("Plain text copied", [], { delay: 2800 });
   }
 
   function showHtmlToast() {
-    removeToast();
-    const toast = document.createElement("div");
-    toast.id = TOAST_ID;
-    toast.textContent = "HTML copied";
-    decorateToast(toast);
-    document.documentElement.append(toast);
-    scheduleToastRemoval(toast, 2800);
+    buildToast("HTML copied", [], { delay: 2800 });
+  }
+
+  function showErrorToast(message, actions = []) {
+    buildToast(message, actions, { error: true, delay: 6000 });
   }
 
   function openReportIssue() {
@@ -236,17 +394,45 @@
     });
   }
 
+  function openOptions() {
+    chrome.runtime.sendMessage({ type: "element-to-markdown:open-options" });
+  }
+
+  function sendToObsidian() {
+    const { obsidianVault, obsidianFolder } = lastResult.settings;
+    const name = lastResult.filename.replace(/\.md$/, "")
+      .replace(/[#^[\]]/g, "")
+      .replace(/-{2,}/g, "-")
+      .replace(/^-+|-+$/g, "") || "converted";
+    const file = obsidianFolder ? `${obsidianFolder}/${name}` : name;
+    location.href = `obsidian://new?vault=${encodeURIComponent(obsidianVault)}&file=${encodeURIComponent(file)}&clipboard`;
+  }
+
   function stopSelectionMode() {
     mode = null;
     hideHighlight();
+    hideHint();
     document.removeEventListener("mousemove", onMouseMove, true);
     document.removeEventListener("click", onClick, true);
     document.removeEventListener("keydown", onKeyDown, true);
+    window.removeEventListener("scroll", onViewportChange, true);
+    window.removeEventListener("resize", onViewportChange);
   }
 
   function onMouseMove(event) {
     if (isExtensionUi(event.target)) return;
-    updateHighlight(event.target);
+    const target = event.target === document.documentElement
+      ? document.body || event.target
+      : event.target;
+    if (target === baseElement) return;
+    if (expandDepth > 0 && resolveSelectedElement()?.contains(target)) return;
+    baseElement = target;
+    expandDepth = 0;
+    updateHighlight();
+  }
+
+  function onViewportChange() {
+    if (baseElement) updateHighlight();
   }
 
   async function onClick(event) {
@@ -254,51 +440,100 @@
     event.preventDefault();
     event.stopPropagation();
 
-    const element = highlightedElement || event.target;
-    const { outputFormat = "standard" } = await chrome.storage.sync.get("outputFormat");
-    const { convertElementToMarkdown, convertElementToPlainText, fileNameFromMarkdown } = window.ElementToMarkdown;
-    const options = { outputFormat };
-    const markdown = convertElementToMarkdown(element, options);
-    const plainText = convertElementToPlainText(element, options);
-    lastResult = {
-      markdown,
-      plainText,
-      html: element.outerHTML,
-      filename: fileNameFromMarkdown(markdown)
-    };
-
+    const element = resolveSelectedElement() || event.target;
     const currentMode = mode;
     stopSelectionMode();
+    const settings = await chrome.storage.sync.get(SETTING_DEFAULTS);
+
+    try {
+      const { convertElementToMarkdown, convertElementToPlainText, fileNameFromMarkdown } = window.ElementToMarkdown;
+      const options = { outputFormat: settings.outputFormat };
+      const markdown = convertElementToMarkdown(element, options);
+      const plainText = convertElementToPlainText(element, options);
+      lastResult = {
+        markdown,
+        plainText,
+        html: element.outerHTML,
+        filename: fileNameFromMarkdown(markdown),
+        settings
+      };
+    } catch (error) {
+      lastResult = {
+        markdown: `CONVERSION ERROR: ${error?.message || error}`,
+        plainText: "",
+        html: element.outerHTML,
+        filename: "converted.md",
+        settings
+      };
+      showErrorToast("Conversion failed.", [
+        ["Report issue", () => {
+          openReportIssue();
+        }]
+      ]);
+      return;
+    }
 
     if (currentMode === "save") {
-      saveMarkdown(markdown, lastResult.filename);
+      saveMarkdown(withFrontmatter(lastResult.markdown, "file"), lastResult.filename);
       showToast("save");
       return;
     }
 
     if (currentMode === "plain") {
-      await copyText(plainText);
-      showPlainTextToast();
+      if (await copyText(lastResult.plainText)) showPlainTextToast();
       return;
     }
 
-    await copyText(markdown);
-    showToast("copy");
+    if (currentMode === "obsidian") {
+      if (!settings.obsidianVault) {
+        showErrorToast("Set your Obsidian vault name first.", [
+          ["Open options", () => {
+            openOptions();
+          }]
+        ]);
+        return;
+      }
+      if (await copyText(withFrontmatter(lastResult.markdown, "file"))) {
+        sendToObsidian();
+        showToast("obsidian");
+      }
+      return;
+    }
+
+    if (await copyText(withFrontmatter(lastResult.markdown, "copy"))) showToast("copy");
   }
 
   function onKeyDown(event) {
     if (event.key === "Escape") {
       event.preventDefault();
       stopSelectionMode();
+      return;
+    }
+
+    if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+      if (!baseElement) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.key === "ArrowUp") {
+        if (resolveSelectedElement(expandDepth + 1) !== resolveSelectedElement()) {
+          expandDepth += 1;
+        }
+      } else if (expandDepth > 0) {
+        expandDepth -= 1;
+      }
+      updateHighlight();
     }
   }
 
   function activate(nextMode) {
     stopSelectionMode();
     mode = nextMode;
+    showHint(nextMode);
     document.addEventListener("mousemove", onMouseMove, true);
     document.addEventListener("click", onClick, true);
     document.addEventListener("keydown", onKeyDown, true);
+    window.addEventListener("scroll", onViewportChange, { capture: true, passive: true });
+    window.addEventListener("resize", onViewportChange);
   }
 
   chrome.runtime.onMessage.addListener((message) => {

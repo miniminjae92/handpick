@@ -40,6 +40,7 @@ When fixing a conversion bug:
 1. Reduce the failing HTML to the smallest useful reproduction.
 2. Add it under `fixtures/<case-name>/`.
 3. Add the case to `fixtures/index.json`.
-4. Verify it with `fixtures.html`.
+4. Verify it with `npm test` (or `npm run check` for the full suite).
+5. Optionally inspect the diff visually with `fixtures.html`.
 
 Fixtures should capture the core failure, not entire real webpages.

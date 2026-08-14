@@ -36,16 +36,58 @@
       .replace(/\]/g, "\\]");
   }
 
+  function normalizeMarkdownOutsideFences(text) {
+    return text
+      .replace(/^((?:[ \t]|> )*(?:[-*]|\d+\.)\s[^\n]*)\n(?:[ \t]|>)*\n(?=(?:[ \t]|> )*(?:[-*]|\d+\.)\s)/gm, "$1\n")
+      .replace(/^((?:[ \t]*>)*)[ \t]+$/gm, "$1")
+      .replace(/[ \t]+\n/g, (match) => (/ {2}/.test(match) ? "  \n" : "\n"))
+      .replace(/\n{3,}/g, "\n\n");
+  }
+
   function normalizeBlankLines(markdown) {
-    return markdown
-      .replace(/\n[ \t]*\n[ \t]*([*-]\s)/g, "\n$1")
-      .replace(/[ \t]+\n/g, "\n")
-      .replace(/\n{3,}/g, "\n\n")
-      .replace(/^\s+|\s+$/g, "");
+    // Code fences must pass through untouched: the blank-line and trailing
+    // whitespace rewrites would silently alter code content. Fences quoted
+    // inside blockquotes/callouts ("> ```") need the same protection.
+    const fencePattern = /^(?:[ \t]|>)*(`{3,})[^\n]*\n[\s\S]*?\n(?:[ \t]|>)*\1[ \t]*$/gm;
+    let normalized = "";
+    let last = 0;
+    for (const match of markdown.matchAll(fencePattern)) {
+      normalized += normalizeMarkdownOutsideFences(markdown.slice(last, match.index)) + match[0];
+      last = match.index + match[0].length;
+    }
+    normalized += normalizeMarkdownOutsideFences(markdown.slice(last));
+    return normalized.replace(/^\s+|\s+$/g, "");
+  }
+
+  function sanitizeInlineTex(tex) {
+    // KaTeX allows nested math via \text{... $x$ ...}; a bare $ would close the
+    // surrounding $...$ early, so swap unescaped pairs for \( \).
+    let open = false;
+    return tex.replace(/(\\*)\$/g, (match, backslashes) => {
+      if (backslashes.length % 2) return match;
+      open = !open;
+      return backslashes + (open ? "\\(" : "\\)");
+    });
+  }
+
+  function demoteDisplayMathInTableCell(text) {
+    // Table cells cannot hold multi-line $$ blocks (newlines become <br>).
+    return text.replace(/\$\$\n([\s\S]*?)\n\$\$/g, (match, tex) => `$${sanitizeInlineTex(tex.replace(/\n/g, " "))}$`);
+  }
+
+  function escapePipesOutsideMath(text) {
+    // A pipe inside $...$ must stay LaTeX (\| means ‖), not become \|. Code
+    // spans and prose dollars ("Costs $5 | was $10") are not math: backtick
+    // spans win over dollars, and math delimiters must hug non-space content.
+    return text.replace(/(`+)(?:(?!\1)[\s\S])*\1|\$(?=\S)(?:\\.|[^$\\\n])*?(?<=\S)\$|\|/g, (match) => {
+      if (match === "|") return "\\|";
+      if (match.startsWith("`")) return match.replace(/\|/g, "\\|");
+      return match.replace(/\\\|/g, "\\Vert ").replace(/\|/g, "\\vert ");
+    });
   }
 
   function escapeTableCell(text) {
-    return normalizeBlankLines(text).replace(/\|/g, "\\|").replace(/\n/g, "<br>");
+    return escapePipesOutsideMath(demoteDisplayMathInTableCell(normalizeBlankLines(text))).replace(/\n/g, "<br>");
   }
 
   function textWithCodeLineBreaks(node) {
@@ -195,7 +237,8 @@
       headingStyle: "atx",
       codeBlockStyle: "fenced",
       bulletListMarker: "-",
-      emDelimiter: "*"
+      emDelimiter: "*",
+      hr: "---"
     });
     const defaultEscape = service.escape.bind(service);
     service.escape = (text) => defaultEscape(text).replace(/\\\./g, ".");
@@ -204,6 +247,39 @@
       filter: ["del", "s", "strike"],
       replacement(content) {
         return content ? `~~${content}~~` : "";
+      }
+    });
+
+    // Single-space list markers instead of turndown's three-space padding.
+    // Added before taskListItems so task items keep their own rule.
+    service.addRule("listItems", {
+      filter: "li",
+      replacement(content, node, options) {
+        let prefix = `${options.bulletListMarker} `;
+        const parent = node.parentNode;
+        if (parent.nodeName === "OL") {
+          const start = parent.getAttribute("start");
+          const index = Array.prototype.indexOf.call(parent.children, node);
+          prefix = `${start ? Number(start) + index : index + 1}. `;
+        }
+        const body = content
+          .replace(/^\n+/, "")
+          .replace(/\n+$/, "\n")
+          .replace(/\n/gm, `\n${" ".repeat(prefix.length)}`);
+        return prefix + body + (node.nextSibling && !/\n$/.test(body) ? "\n" : "");
+      }
+    });
+
+    service.addRule("mathBlocks", {
+      filter(node) {
+        return node.nodeName === "SPAN" && node.hasAttribute("data-etm-math");
+      },
+      replacement(content, node) {
+        const tex = node.getAttribute("data-etm-math");
+        if (!tex) return "";
+        return node.hasAttribute("data-etm-math-display")
+          ? `\n\n$$\n${tex}\n$$\n\n`
+          : `$${sanitizeInlineTex(tex)}$`;
       }
     });
 
@@ -230,11 +306,12 @@
         },
         replacement(content, node) {
           const type = node.getAttribute("data-obsidian-callout") || "note";
+          const title = node.getAttribute("data-obsidian-callout-title");
           const body = normalizeBlankLines(content)
             .split("\n")
             .map((line) => line ? `> ${line}` : ">")
             .join("\n");
-          return `\n\n> [!${type}]\n${body}\n\n`;
+          return `\n\n> [!${type}]${title ? ` ${title}` : ""}\n${body}\n\n`;
         }
       });
 
@@ -334,7 +411,7 @@
 
   function tableToMarkdown(table) {
     const rows = Array.from(table.querySelectorAll("tr")).map((row) =>
-      Array.from(row.children).map((cell) => normalizeBlankLines(inlineChildren(cell)).replace(/\|/g, "\\|"))
+      Array.from(row.children).map((cell) => escapeTableCell(inlineChildren(cell)))
     );
 
     if (!rows.length) return "";
@@ -354,6 +431,11 @@
     }
 
     if (node.nodeType !== Node.ELEMENT_NODE) return "";
+
+    if (node.hasAttribute("data-etm-math")) {
+      const tex = node.getAttribute("data-etm-math");
+      return node.hasAttribute("data-etm-math-display") ? `$$\n${tex}\n$$` : `$${sanitizeInlineTex(tex)}$`;
+    }
 
     const tag = node.tagName;
     const inline = context.inline;
@@ -498,12 +580,51 @@
     });
   }
 
-  function normalizeCallouts(root, outputFormat = "standard") {
-    root.querySelectorAll(".callout, .v-alert[role='alert']").forEach((callout) => {
-      const blockquote = document.createElement("blockquote");
-      const content = callout.querySelector(".v-alert__content") || callout;
-      if (outputFormat === "obsidian") {
-        const className = callout.getAttribute("class") || "";
+  const calloutSources = [
+    {
+      // GitHub rendered alerts: <div class="markdown-alert markdown-alert-note">
+      selector: ".markdown-alert",
+      resolve(node) {
+        const match = (node.getAttribute("class") || "").match(/markdown-alert-([a-z]+)/i);
+        const map = { note: "note", tip: "tip", important: "important", warning: "warning", caution: "danger" };
+        return {
+          type: map[match?.[1]?.toLowerCase()] || "note",
+          title: node.querySelector(".markdown-alert-title"),
+          content: node
+        };
+      }
+    },
+    {
+      // Docusaurus admonitions (v2/v3 themes)
+      selector: ".theme-admonition, .admonition",
+      resolve(node) {
+        const match = (node.getAttribute("class") || "").match(/(?:theme-admonition|admonition)-([a-z]+)/i);
+        const map = {
+          note: "note",
+          info: "info",
+          tip: "tip",
+          caution: "warning",
+          warning: "warning",
+          danger: "danger",
+          secondary: "note",
+          important: "important",
+          success: "success"
+        };
+        // Sphinx/ReadTheDocs mark the type as a bare class token
+        // ("admonition warning") and title the box with .admonition-title.
+        const typeToken = match?.[1]?.toLowerCase()
+          || Array.from(node.classList).find((token) => map[token.toLowerCase()])?.toLowerCase();
+        return {
+          type: map[typeToken] || "note",
+          title: node.querySelector(".admonition-heading, .admonition-title, [class*='admonitionHeading']"),
+          content: node
+        };
+      }
+    },
+    {
+      selector: ".callout, .v-alert[role='alert']",
+      resolve(node) {
+        const className = node.getAttribute("class") || "";
         const type = [
           ["success", "success"],
           ["warning", "warning"],
@@ -512,13 +633,188 @@
           ["info", "info"],
           ["tip", "tip"]
         ].find(([token]) => className.includes(token))?.[1] || "note";
-        blockquote.setAttribute("data-obsidian-callout", type);
-        blockquote.innerHTML = content.innerHTML;
-      } else {
-        blockquote.innerHTML = content.innerHTML;
+        return {
+          type,
+          title: null,
+          content: node.querySelector(".v-alert__content") || node
+        };
       }
-      callout.replaceWith(blockquote);
+    }
+  ];
+
+  // Default admonition headings ("Note", "WARNING", "팁", …) just restate the
+  // callout type; only user-written titles are worth keeping in the header.
+  // Covers English plus the Korean locale strings of Docusaurus/Sphinx themes.
+  const defaultCalloutTitles = new Set([
+    "note", "info", "tip", "hint", "important", "warning", "caution",
+    "danger", "error", "attention", "success", "secondary", "seealso",
+    "see also", "todo",
+    "노트", "팁", "정보", "힌트", "중요", "경고", "주의", "위험",
+    "오류", "에러", "성공", "참고"
+  ]);
+
+  function normalizeCallouts(root, outputFormat = "standard") {
+    for (const source of calloutSources) {
+      root.querySelectorAll(source.selector).forEach((callout) => {
+        if (!root.contains(callout)) return;
+        const { type, title, content } = source.resolve(callout);
+        const blockquote = document.createElement("blockquote");
+        if (outputFormat === "obsidian") {
+          if (title) {
+            const titleText = title.textContent.replace(/\s+/g, " ").trim();
+            if (titleText && !defaultCalloutTitles.has(titleText.toLowerCase())) {
+              blockquote.setAttribute("data-obsidian-callout-title", titleText);
+            }
+            title.remove();
+          }
+          blockquote.setAttribute("data-obsidian-callout", type);
+        }
+        // Move (not copy) children so nested callouts stay attached to root
+        // and get converted on their own pass.
+        blockquote.append(...content.childNodes);
+        callout.replaceWith(blockquote);
+      });
+    }
+  }
+
+  function replaceWithMathToken(node, tex, display) {
+    const token = document.createElement("span");
+    token.setAttribute("data-etm-math", tex);
+    if (display) token.setAttribute("data-etm-math-display", "");
+    token.textContent = tex;
+    node.replaceWith(token);
+  }
+
+  function normalizeMathElements(root) {
+    // KaTeX (ChatGPT, Claude, many docs sites): LaTeX source lives in the
+    // MathML annotation node.
+    root.querySelectorAll(".katex").forEach((katex) => {
+      if (!root.contains(katex)) return;
+      const tex = katex.querySelector("annotation[encoding='application/x-tex']")?.textContent.trim();
+      if (!tex) {
+        // No LaTeX source (e.g. KaTeX output: "html"): keep one rendered
+        // branch as plain text so the aria-hidden cleanup cannot drop it.
+        const fallbackSource = katex.querySelector(".katex-mathml") || katex.querySelector(".katex-html") || katex;
+        katex.replaceWith(document.createTextNode(fallbackSource.textContent.replace(/\s+/g, " ").trim()));
+        return;
+      }
+      const displayWrapper = katex.closest(".katex-display");
+      // Only swallow the wrapper when this is its sole math; the token check
+      // stops a second pass from replacing a wrapper that already holds one.
+      const soleMath = displayWrapper
+        && displayWrapper.querySelectorAll(".katex").length === 1
+        && !displayWrapper.querySelector("[data-etm-math]");
+      replaceWithMathToken(soleMath ? displayWrapper : katex, tex, Boolean(displayWrapper));
     });
+
+    // MathJax v2 keeps the TeX source in a sibling script tag.
+    root.querySelectorAll("script[type^='math/tex']").forEach((script) => {
+      const tex = (script.textContent || "").trim();
+      const display = /mode\s*=\s*display/.test(script.getAttribute("type") || "");
+      const rendered = script.previousElementSibling;
+      if (rendered && /(?:^|\s)MathJax/.test(rendered.getAttribute("class") || "")) rendered.remove();
+      if (tex) {
+        replaceWithMathToken(script, tex, display);
+      } else {
+        script.remove();
+      }
+    });
+
+    // MathJax v3 with assistive MathML annotations.
+    root.querySelectorAll("mjx-container").forEach((container) => {
+      const tex = container.querySelector("annotation[encoding='application/x-tex']")?.textContent.trim();
+      if (!tex) return;
+      replaceWithMathToken(container, tex, container.getAttribute("display") === "true");
+    });
+  }
+
+  const lazySrcAttributes = ["data-src", "data-lazy-src", "data-original", "data-actualsrc"];
+
+  function parseSrcsetCandidates(srcset) {
+    // Manual scan instead of split(",") — URLs may contain commas (data: URIs).
+    const input = (srcset || "").trim();
+    const candidates = [];
+    let i = 0;
+    while (i < input.length) {
+      while (i < input.length && /[\s,]/.test(input[i])) i += 1;
+      const urlStart = i;
+      while (i < input.length && !/\s/.test(input[i])) i += 1;
+      let url = input.slice(urlStart, i);
+      let descriptor = "";
+      if (/,$/.test(url)) {
+        url = url.replace(/,+$/, "");
+      } else {
+        while (i < input.length && /\s/.test(input[i])) i += 1;
+        const descriptorStart = i;
+        while (i < input.length && input[i] !== ",") i += 1;
+        descriptor = input.slice(descriptorStart, i).trim();
+        i += 1;
+      }
+      if (url) candidates.push({ url, descriptor });
+    }
+    return candidates;
+  }
+
+  function bestUrlFromSrcset(srcset) {
+    let best = "";
+    let bestWidth = -1;
+    for (const { url, descriptor } of parseSrcsetCandidates(srcset)) {
+      if (url.startsWith("data:")) continue;
+      // w and x descriptors never mix in one srcset, so bare numeric
+      // comparison picks the largest of either.
+      const widthMatch = descriptor.match(/^(\d+(?:\.\d+)?)[wx]$/);
+      const width = widthMatch ? Number(widthMatch[1]) : 0;
+      if (width > bestWidth) {
+        bestWidth = width;
+        best = url;
+      }
+    }
+    return best;
+  }
+
+  function normalizeLazyImages(root) {
+    root.querySelectorAll("img").forEach((img) => {
+      const src = img.getAttribute("src") || "";
+      if (src && !src.startsWith("data:")) return;
+
+      let replacement = "";
+      for (const attribute of lazySrcAttributes) {
+        const value = (img.getAttribute(attribute) || "").trim();
+        if (value) {
+          replacement = value;
+          break;
+        }
+      }
+      if (!replacement) {
+        replacement = bestUrlFromSrcset(img.getAttribute("data-srcset") || img.getAttribute("srcset"));
+      }
+      if (!replacement) {
+        const picture = img.closest("picture");
+        const source = picture?.querySelector("source[srcset], source[data-srcset]");
+        if (source) {
+          replacement = bestUrlFromSrcset(source.getAttribute("srcset") || source.getAttribute("data-srcset"));
+        }
+      }
+      if (replacement) img.setAttribute("src", replacement);
+    });
+  }
+
+  function absolutizeUrls(root) {
+    const base = root.ownerDocument?.baseURI || "";
+    if (!base || base === "about:blank") return;
+
+    const rewrite = (node, attribute) => {
+      const value = (node.getAttribute(attribute) || "").trim();
+      if (!value || value.startsWith("#") || /^[a-z][a-z0-9+.-]*:/i.test(value)) return;
+      try {
+        node.setAttribute(attribute, new URL(value, base).href);
+      } catch {
+        // Leave unresolvable values untouched.
+      }
+    };
+
+    root.querySelectorAll("a[href]").forEach((node) => rewrite(node, "href"));
+    root.querySelectorAll("img[src]").forEach((node) => rewrite(node, "src"));
   }
 
   function preserveTaskListSemantics(root) {
@@ -618,7 +914,9 @@
   function cleanupContent(content, options = {}) {
     const root = content.cloneNode(true);
 
+    normalizeLazyImages(root);
     preserveTextualMediaFallbacks(root);
+    normalizeMathElements(root);
     normalizeRichCodeBlocks(root);
 
     root.querySelectorAll([
@@ -647,6 +945,7 @@
     normalizeStepHeadingBadges(root);
     removeEmptyHeadingPermalinks(root);
     removeInvisibleAndEmptyNoise(root);
+    absolutizeUrls(root);
 
     root.querySelectorAll("[contenteditable], [spellcheck], [placeholder], [style], [class]").forEach((node) => {
       node.removeAttribute("contenteditable");
@@ -672,8 +971,15 @@
   }
 
 
+  function disambiguateLeadingHr(markdown) {
+    // A note starting with "---" reads as a frontmatter delimiter in Obsidian;
+    // "***" is the same thematic break without that ambiguity.
+    return markdown.replace(/^---(?=\n|$)/, "***");
+  }
+
   function convertElementToMarkdown(element, options = {}) {
-    return convertWithTurndown(element, options) || normalizeBlankLines(toMarkdown(cleanupContent(element, options)));
+    const markdown = convertWithTurndown(element, options) || normalizeBlankLines(toMarkdown(cleanupContent(element, options)));
+    return disambiguateLeadingHr(markdown);
   }
 
   function convertElementToPlainText(element, options = {}) {
@@ -723,9 +1029,23 @@
     return content;
   }
 
+  function stripFencedCodeBlocks(markdown) {
+    return markdown.replace(/^(`{3,})[^\n]*\n[\s\S]*?^\1`*[ \t]*$/gm, "");
+  }
+
+  function headingTextFromMarkdown(markdown) {
+    const firstHeading = stripFencedCodeBlocks(markdown).match(/^#{1,6}\s+(.+)$/m);
+    if (!firstHeading) return "";
+    return firstHeading[1]
+      .replace(/`([^`]*)`/g, "$1")
+      .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1")
+      .replace(/(\*\*|__)(.+?)\1/g, "$2")
+      .replace(/(\*|_)(.+?)\1/g, "$2")
+      .trim();
+  }
+
   function fileNameFromMarkdown(markdown) {
-    const firstHeading = markdown.match(/^#\s+(.+)$/m);
-    const baseName = firstHeading ? firstHeading[1] : "converted";
+    const baseName = headingTextFromMarkdown(markdown) || "converted";
     const safeName = baseName.replace(/[\\/:*?"<>|]/g, "").replace(/\s+/g, "-").slice(0, 80) || "converted";
     return `${safeName}.md`;
   }
@@ -736,6 +1056,7 @@
     sourceLabel,
     convertElementToMarkdown,
     convertElementToPlainText,
+    headingTextFromMarkdown,
     fileNameFromMarkdown
   };
 })();
