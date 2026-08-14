@@ -16,11 +16,14 @@ It is especially useful when moving AI-generated answers, technical docs, blog p
 
 ### Key features
 
-- Option + Shift + C: copy the selected element as Markdown
-- Option + Shift + S: save the selected element as a `.md` file
-- Configure shortcuts for copy, save, and plain text actions in Chrome's shortcut settings
+- Start a capture from the toolbar icon, or with Option + Shift + C (copy) / Option + Shift + S (save)
+- Select the exact element you want, then widen or narrow it with ↑ / ↓
+- Save the selection as a `.md` file, or straight into an Obsidian vault
+- Add optional source frontmatter (title, source URL, capture time) to saved notes
 - Copy plain text or HTML from the same selection
-- Choose Standard Markdown or Obsidian output for supported callouts
+- Choose Standard Markdown or Obsidian output, including supported callouts
+- Preserve KaTeX/MathJax math as `$…$` / `$$…$$` LaTeX
+- Resolve relative links and lazy-loaded images to real URLs
 - Create a reviewable bug report draft when conversion fails
 - Local, browser-side processing by default
 
@@ -46,11 +49,14 @@ AI가 생성한 답변, 기술 문서, 블로그 글, 표와 코드가 포함된
 
 ### 주요 기능
 
-- Option + Shift + C: 선택한 요소를 Markdown으로 복사
-- Option + Shift + S: 선택한 요소를 `.md` 파일로 저장
-- Chrome 단축키 설정에서 복사, 저장, plain text 액션 단축키를 직접 지정
+- 툴바 아이콘 클릭 또는 Option + Shift + C(복사) / Option + Shift + S(저장)로 캡처 시작
+- 원하는 요소를 직접 고르고 ↑ / ↓로 선택 범위를 넓히거나 좁히기
+- 선택한 내용을 `.md` 파일로 저장하거나 Obsidian vault로 바로 저장
+- 저장할 노트에 출처 frontmatter(제목, 원본 URL, 캡처 시각) 추가 가능
 - 같은 선택 결과에서 plain text 또는 HTML도 복사
-- 지원되는 callout은 Standard Markdown 또는 Obsidian 출력으로 선택
+- 지원되는 callout을 포함해 Standard Markdown 또는 Obsidian 출력 선택
+- KaTeX/MathJax 수식을 `$…$` / `$$…$$` LaTeX로 보존
+- 상대 링크와 lazy 이미지 주소를 실제 URL로 복원
 - 변환이 이상하면 검토 가능한 버그 리포트 초안 생성
 - 기본적으로 브라우저 안에서만 처리
 

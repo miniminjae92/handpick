@@ -51,5 +51,80 @@
     "name": "step-heading-badge",
     "input": "step-heading-badge/input.html",
     "expected": "step-heading-badge/expected.md"
+  },
+  {
+    "name": "katex-math",
+    "input": "katex-math/input.html",
+    "expected": "katex-math/expected.md"
+  },
+  {
+    "name": "relative-urls",
+    "input": "relative-urls/input.html",
+    "expected": "relative-urls/expected.md"
+  },
+  {
+    "name": "lazy-image",
+    "input": "lazy-image/input.html",
+    "expected": "lazy-image/expected.md"
+  },
+  {
+    "name": "github-alert",
+    "input": "github-alert/input.html",
+    "expected": "github-alert/expected.md"
+  },
+  {
+    "name": "github-alert-obsidian",
+    "input": "github-alert-obsidian/input.html",
+    "expected": "github-alert-obsidian/expected.md",
+    "outputFormat": "obsidian"
+  },
+  {
+    "name": "docusaurus-admonition",
+    "input": "docusaurus-admonition/input.html",
+    "expected": "docusaurus-admonition/expected.md",
+    "outputFormat": "obsidian"
+  },
+  {
+    "name": "hard-line-break",
+    "input": "hard-line-break/input.html",
+    "expected": "hard-line-break/expected.md"
+  },
+  {
+    "name": "code-block-blank-lines",
+    "input": "code-block-blank-lines/input.html",
+    "expected": "code-block-blank-lines/expected.md"
+  },
+  {
+    "name": "sphinx-admonition",
+    "input": "sphinx-admonition/input.html",
+    "expected": "sphinx-admonition/expected.md",
+    "outputFormat": "obsidian"
+  },
+  {
+    "name": "table-cell-math",
+    "input": "table-cell-math/input.html",
+    "expected": "table-cell-math/expected.md"
+  },
+  {
+    "name": "nested-callout",
+    "input": "nested-callout/input.html",
+    "expected": "nested-callout/expected.md",
+    "outputFormat": "obsidian"
+  },
+  {
+    "name": "table-cell-code-pipe",
+    "input": "table-cell-code-pipe/input.html",
+    "expected": "table-cell-code-pipe/expected.md"
+  },
+  {
+    "name": "blockquote-code-fence",
+    "input": "blockquote-code-fence/input.html",
+    "expected": "blockquote-code-fence/expected.md"
+  },
+  {
+    "name": "admonition-custom-title",
+    "input": "admonition-custom-title/input.html",
+    "expected": "admonition-custom-title/expected.md",
+    "outputFormat": "obsidian"
   }
 ]
