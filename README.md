@@ -63,7 +63,10 @@ Default shortcuts on macOS:
 - `Option + Shift + C` — Copy Markdown
 - `Option + Shift + S` — Save Markdown
 
-On Windows/Linux, Chrome may display `Option` as `Alt`.
+Default shortcuts on Windows/Linux:
+
+- `Alt + Shift + C` — Copy Markdown
+- `Alt + Shift + S` — Save Markdown
 
 You can change shortcuts or assign one for `Copy plain text` in:
 
