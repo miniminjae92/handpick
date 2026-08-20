@@ -8,7 +8,7 @@
     "description": "Short name used where space is tight. Max 12 characters."
   },
   "extDescription": {
-    "message": "화면에서 가리킨 것을 그대로 읽을 수 있는 글로. Markdown 또는 일반 텍스트로 복사하고, .md로 저장하거나 Obsidian에 바로 보냅니다.",
+    "message": "화면에서 가리킨 것을 그대로 읽을 수 있는 글로 바꿉니다. Markdown 또는 일반 텍스트로 복사하고, .md로 저장하거나 Obsidian에 바로 보냅니다.",
     "description": "Store summary. Max 132 characters."
   },
   "actionTitle": {

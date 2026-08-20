@@ -26,7 +26,7 @@ Copy it to the clipboard, download it as a `.md` file, or send it straight to an
 
 ### Key features
 
-- Start a capture from the toolbar icon, or with Option + Shift + C (copy) / Option + Shift + S (save)
+- Start a capture from the toolbar icon, or with a keyboard shortcut: Option + Shift + C / S on macOS, Alt + Shift + C / S on Windows and Linux
 - Point at the exact part you want, then widen or narrow it with ↑ / ↓
 - Save the selection as a `.md` file, or straight into an Obsidian vault
 - Add optional source frontmatter (title, source URL, capture time) to saved notes
@@ -47,9 +47,13 @@ Copy it to the clipboard, download it as a `.md` file, or send it straight to an
 
 Handpick only processes the part you explicitly point at. Selected HTML is not uploaded automatically, and bug reports are only shared when you review and submit them yourself.
 
+## Korean name
+
+Handpick: 페이지의 원하는 부분만 Markdown이나 텍스트로 복사
+
 ## Korean short description
 
-화면에서 가리킨 것을 그대로 읽을 수 있는 글로. Markdown 또는 일반 텍스트로 복사하고, .md로 저장하거나 Obsidian에 바로 보냅니다.
+화면에서 가리킨 것을 그대로 읽을 수 있는 글로 바꿉니다. Markdown 또는 일반 텍스트로 복사하고, .md로 저장하거나 Obsidian에 바로 보냅니다.
 
 ## Korean detailed description
 
@@ -61,7 +65,7 @@ Handpick only processes the part you explicitly point at. Selected HTML is not u
 
 ### 주요 기능
 
-- 툴바 아이콘 클릭 또는 Option + Shift + C(복사) / Option + Shift + S(저장)로 캡처 시작
+- 툴바 아이콘 클릭 또는 단축키로 캡처 시작: macOS는 Option + Shift + C(복사) / S(저장), Windows와 Linux는 Alt + Shift + C / S
 - 원하는 부분을 직접 가리키고 ↑ / ↓로 선택 범위를 넓히거나 좁히기
 - 선택한 내용을 `.md` 파일로 저장하거나 Obsidian vault로 바로 저장
 - 저장할 노트에 출처 frontmatter(제목, 원본 URL, 캡처 시각) 추가 가능

@@ -5,7 +5,7 @@ Hover to highlight any element on the page, press ↑ or ↓ to widen or narrow 
 Copy it to the clipboard, download it as a .md file, or send it straight to an Obsidian vault. Plain text and HTML come out of the same selection.
 
 Key features:
-- Start a capture from the toolbar icon, or with Option + Shift + C (copy) / Option + Shift + S (save)
+- Start a capture from the toolbar icon, or with a keyboard shortcut: Option + Shift + C / S on macOS, Alt + Shift + C / S on Windows and Linux
 - Point at the exact part you want, then widen or narrow it with the ↑ / ↓ keys
 - Save the selection as a .md file, or straight into an Obsidian vault
 - Add optional source frontmatter (title, source URL, capture time) to saved notes

@@ -50,7 +50,8 @@ Most web clippers guess where the article is. Handpick does not guess: you point
 1. Open any webpage.
 2. Start a capture in either of these ways:
    - click the toolbar icon and pick an action,
-   - press a shortcut: `Option + Shift + C` (copy) or `Option + Shift + S` (save).
+   - press a shortcut: `Option + Shift + C` (copy) or `Option + Shift + S` (save);
+     on Windows and Linux these are `Alt + Shift + C` and `Alt + Shift + S`.
 3. Click the element you want to capture. Use `↑` / `↓` to adjust the selection scope and `Esc` to cancel.
 4. Use the toast actions if you also want plain text, HTML, or a bug report draft.
 
