@@ -1,5 +1,5 @@
 .vercel
-element-to-markdown-*.zip
+handpick-*.zip
 .DS_Store
 .codex_session
 node_modules/

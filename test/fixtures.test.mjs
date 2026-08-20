@@ -20,7 +20,7 @@ function createConverterWindow() {
   window.eval(read("shared/turndown.js"));
   window.eval(read("shared/converter-core.js"));
   assert.ok(window.TurndownService, "shared/turndown.js must define TurndownService");
-  assert.ok(window.ElementToMarkdown, "shared/converter-core.js must define ElementToMarkdown");
+  assert.ok(window.Handpick, "shared/converter-core.js must define Handpick");
   return window;
 }
 
@@ -36,15 +36,15 @@ test("every fixture directory is registered in fixtures/index.json", () => {
   assert.deepEqual(unregistered, [], `Unregistered fixture directories: ${unregistered.join(", ")}`);
 });
 
-// Mirrors fixtures.html: extractContent + convertElementToMarkdown, compared
+// Mirrors fixtures.html: extractContent + convertToMarkdown, compared
 // against expected.md trimmed.
 for (const fixture of fixtures) {
   test(`fixture: ${fixture.name}`, () => {
     const input = read(path.join("fixtures", fixture.input));
     const expected = read(path.join("fixtures", fixture.expected)).trim();
     const doc = new window.DOMParser().parseFromString(input, "text/html");
-    const content = window.ElementToMarkdown.extractContent(doc);
-    const actual = window.ElementToMarkdown.convertElementToMarkdown(content, {
+    const content = window.Handpick.extractContent(doc);
+    const actual = window.Handpick.convertToMarkdown(content, {
       outputFormat: fixture.outputFormat || "standard"
     });
     assert.equal(actual, expected);

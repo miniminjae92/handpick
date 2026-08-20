@@ -1,10 +1,12 @@
-Element to Markdown lets you select any element on a webpage and quickly copy or save it as clean Markdown.
+Most web clippers guess where the article is. Handpick does not guess.
 
-It is especially useful when moving AI-generated answers, technical docs, blog posts, tables, or code-heavy web content into your personal notes. Compared with ordinary copy and paste, it aims to preserve structure such as headings, lists, tables, blockquotes, and code blocks more reliably.
+Hover to highlight any element on the page, press ↑ or ↓ to widen or narrow the selection, and the exact DOM subtree you picked becomes clean Markdown. Because nothing is inferred from the page's HTML structure, it works on pages that are not articles at all: AI chat answers, docs-site tables, GitHub issues, dashboards.
+
+Copy it to the clipboard, download it as a .md file, or send it straight to an Obsidian vault. Plain text and HTML come out of the same selection.
 
 Key features:
 - Start a capture from the toolbar icon, or with Option + Shift + C (copy) / Option + Shift + S (save)
-- Select the exact element you want, then widen or narrow it with the ↑ / ↓ keys
+- Point at the exact part you want, then widen or narrow it with the ↑ / ↓ keys
 - Save the selection as a .md file, or straight into an Obsidian vault
 - Add optional source frontmatter (title, source URL, capture time) to saved notes
 - Copy plain text or HTML from the same selection
@@ -20,4 +22,4 @@ Useful for:
 - Preserving tables, checklists, and code blocks more cleanly
 
 Privacy:
-Element to Markdown only processes the element you explicitly select. Selected HTML is not uploaded automatically, and bug reports are only shared when you review and submit them yourself.
+Handpick only processes the part you explicitly point at. Selected HTML is not uploaded automatically, and bug reports are only shared when you review and submit them yourself.

@@ -1,5 +1,5 @@
 {
-  "name": "element-to-markdown",
+  "name": "handpick",
   "version": "0.1.1",
   "private": true,
   "description": "Select content from supported webpages and copy or save it as clean Markdown.",

@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping improve Element to Markdown.
+Thanks for helping improve Handpick.
 
 ## Reporting conversion bugs
 

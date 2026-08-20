@@ -2,7 +2,7 @@
 
 ## Project
 
-**Element to Markdown** is a browser-only tool for selecting a page element and turning it into Markdown for personal notes.
+**Handpick** is a browser-only tool for selecting a page element and turning it into Markdown for personal notes.
 
 The product has two surfaces:
 

@@ -2,7 +2,7 @@
 
 ## Summary
 
-Element to Markdown processes only the page element that the user explicitly selects.
+Handpick processes only the page element that the user explicitly selects.
 
 ## What the extension handles
 

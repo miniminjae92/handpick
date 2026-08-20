@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Element to Markdown Fixtures</title>
+  <title>Handpick Fixtures</title>
   <style>
     :root {
       color-scheme: light;
@@ -79,7 +79,7 @@
 </head>
 <body>
   <main>
-    <h1>Element to Markdown Fixtures</h1>
+    <h1>Handpick Fixtures</h1>
     <p>저장된 케이스의 현재 출력과 기대 출력을 비교합니다.</p>
     <div id="cases"></div>
   </main>
@@ -103,8 +103,8 @@
           readText(`fixtures/${fixture.expected}`)
         ]);
         const doc = new DOMParser().parseFromString(input, "text/html");
-        const content = window.ElementToMarkdown.extractContent(doc);
-        const actual = window.ElementToMarkdown.convertElementToMarkdown(content, {
+        const content = window.Handpick.extractContent(doc);
+        const actual = window.Handpick.convertToMarkdown(content, {
           outputFormat: fixture.outputFormat || "standard"
         });
         const passed = actual === expected.trim();

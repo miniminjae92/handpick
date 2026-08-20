@@ -1,9 +1,9 @@
 (() => {
-  if (window.ElementToMarkdownPicker) return;
+  if (window.HandpickPicker) return;
 
-  const HIGHLIGHT_ID = "element-to-markdown-highlight";
-  const TOAST_ID = "element-to-markdown-toast";
-  const HINT_ID = "element-to-markdown-hint";
+  const HIGHLIGHT_ID = "handpick-highlight";
+  const TOAST_ID = "handpick-toast";
+  const HINT_ID = "handpick-hint";
 
   const SETTING_DEFAULTS = {
     outputFormat: "standard",
@@ -189,7 +189,7 @@
   }
 
   function buildFrontmatter(markdown) {
-    const headingTitle = window.ElementToMarkdown.headingTextFromMarkdown?.(markdown);
+    const headingTitle = window.Handpick.headingTextFromMarkdown?.(markdown);
     const title = (headingTitle || document.title || "Untitled")
       .replace(/\s+/g, " ")
       .trim();
@@ -385,7 +385,7 @@
 
   function openReportIssue() {
     chrome.runtime.sendMessage({
-      type: "element-to-markdown:open-report",
+      type: "handpick:open-report",
       payload: {
         inputHtml: lastResult.html,
         actualMarkdown: lastResult.markdown,
@@ -395,7 +395,7 @@
   }
 
   function openOptions() {
-    chrome.runtime.sendMessage({ type: "element-to-markdown:open-options" });
+    chrome.runtime.sendMessage({ type: "handpick:open-options" });
   }
 
   function sendToObsidian() {
@@ -446,10 +446,10 @@
     const settings = await chrome.storage.sync.get(SETTING_DEFAULTS);
 
     try {
-      const { convertElementToMarkdown, convertElementToPlainText, fileNameFromMarkdown } = window.ElementToMarkdown;
+      const { convertToMarkdown, convertToPlainText, fileNameFromMarkdown } = window.Handpick;
       const options = { outputFormat: settings.outputFormat };
-      const markdown = convertElementToMarkdown(element, options);
-      const plainText = convertElementToPlainText(element, options);
+      const markdown = convertToMarkdown(element, options);
+      const plainText = convertToPlainText(element, options);
       lastResult = {
         markdown,
         plainText,
@@ -537,10 +537,10 @@
   }
 
   chrome.runtime.onMessage.addListener((message) => {
-    if (message?.type === "element-to-markdown:activate") {
+    if (message?.type === "handpick:activate") {
       activate(message.mode);
     }
   });
 
-  window.ElementToMarkdownPicker = { activate };
+  window.HandpickPicker = { activate };
 })();

@@ -1,8 +1,8 @@
-# Element to Markdown
+# Handpick
 
-Select content from supported webpages and copy or save it as clean Markdown.
+Point at anything on a page and get readable text back. Markdown or plain text, with tables, code and math intact.
 
-Element to Markdown is built for saving AI answers and useful web content into personal notes while preserving common structures such as headings, lists, tables, code blocks, checklists, and supported callouts.
+Most web clippers guess where the article is. Handpick does not guess: you point at the part you want. That makes it work on pages that are not articles at all, such as AI chat answers, docs-site tables, GitHub issues, and dashboards. Headings, lists, tables, code blocks, checklists, math, and supported callouts survive the trip.
 
 ## Demo
 
@@ -80,7 +80,7 @@ You can also open the same shortcut settings from the extension options page.
 
 ## Privacy
 
-Element to Markdown only processes the element you explicitly select.
+Handpick only processes the element you explicitly select.
 
 - Selected HTML is not uploaded automatically.
 - Browsing history is not collected.
@@ -106,6 +106,6 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for more details.
 
 ## Support 💚
 
-If **Element to Markdown** saves you time, your support helps keep it maintained and improved.
+If **Handpick** saves you time, your support helps keep it maintained and improved.
 
 [💚 Become a sponsor](https://github.com/sponsors/miniminjae92)
