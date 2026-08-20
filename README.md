@@ -1,8 +1,8 @@
-# Element to Markdown
+# Handpick
 
-Select content from supported webpages and copy or save it as clean Markdown.
+Point at anything on a page and get readable text back. Markdown or plain text, with tables, code and math intact.
 
-Element to Markdown is built for saving AI answers and useful web content into personal notes while preserving common structures such as headings, lists, tables, code blocks, checklists, and supported callouts.
+Most web clippers guess where the article is. Handpick does not guess: you point at the part you want. That makes it work on pages that are not articles at all, such as AI chat answers, docs-site tables, GitHub issues, and dashboards. Headings, lists, tables, code blocks, checklists, math, and supported callouts survive the trip.
 
 ## Demo
 
@@ -50,7 +50,8 @@ Element to Markdown is built for saving AI answers and useful web content into p
 1. Open any webpage.
 2. Start a capture in either of these ways:
    - click the toolbar icon and pick an action,
-   - press a shortcut: `Option + Shift + C` (copy) or `Option + Shift + S` (save).
+   - press a shortcut: `Option + Shift + C` (copy) or `Option + Shift + S` (save);
+     on Windows and Linux these are `Alt + Shift + C` and `Alt + Shift + S`.
 3. Click the element you want to capture. Use `↑` / `↓` to adjust the selection scope and `Esc` to cancel.
 4. Use the toast actions if you also want plain text, HTML, or a bug report draft.
 
@@ -63,7 +64,10 @@ Default shortcuts on macOS:
 - `Option + Shift + C` — Copy Markdown
 - `Option + Shift + S` — Save Markdown
 
-On Windows/Linux, Chrome may display `Option` as `Alt`.
+Default shortcuts on Windows/Linux:
+
+- `Alt + Shift + C` — Copy Markdown
+- `Alt + Shift + S` — Save Markdown
 
 You can change shortcuts or assign one for `Copy plain text` in:
 
@@ -80,7 +84,7 @@ You can also open the same shortcut settings from the extension options page.
 
 ## Privacy
 
-Element to Markdown only processes the element you explicitly select.
+Handpick only processes the element you explicitly select.
 
 - Selected HTML is not uploaded automatically.
 - Browsing history is not collected.
@@ -90,7 +94,7 @@ See [`docs/privacy.md`](docs/privacy.md) for details.
 
 ## Install
 
-Chrome Web Store link coming soon.
+[Install from the Chrome Web Store](https://chromewebstore.google.com/detail/hfdnljkfbofjphldkmgadhihdjknniag)
 
 ## Reporting issues
 
@@ -106,6 +110,6 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for more details.
 
 ## Support 💚
 
-If **Element to Markdown** saves you time, your support helps keep it maintained and improved.
+If **Handpick** saves you time, your support helps keep it maintained and improved.
 
 [💚 Become a sponsor](https://github.com/sponsors/miniminjae92)

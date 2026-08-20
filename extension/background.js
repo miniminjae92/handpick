@@ -10,11 +10,11 @@ async function flashActivationError(tabId) {
     await chrome.action.setBadgeText({ tabId, text: "!" });
     await chrome.action.setTitle({
       tabId,
-      title: "Element to Markdown can't run on this page (browser and store pages are restricted)."
+      title: "Handpick can't run on this page (browser and store pages are restricted)."
     });
     setTimeout(() => {
       chrome.action.setBadgeText({ tabId, text: "" }).catch(() => {});
-      chrome.action.setTitle({ tabId, title: "Element to Markdown" }).catch(() => {});
+      chrome.action.setTitle({ tabId, title: "Handpick" }).catch(() => {});
     }, 4000);
   } catch {
     // Tab may be gone; nothing else to report to.
@@ -34,7 +34,7 @@ async function activateSelectionMode(mode, targetTab) {
       files: ["vendor/turndown.js", "converter-core.js", "content-script.js"]
     });
     await chrome.tabs.sendMessage(tab.id, {
-      type: "element-to-markdown:activate",
+      type: "handpick:activate",
       mode
     });
     return { ok: true };
@@ -56,17 +56,17 @@ chrome.commands.onCommand.addListener((command) => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message?.type === "element-to-markdown:activate-from-popup") {
+  if (message?.type === "handpick:activate-from-popup") {
     activateSelectionMode(message.mode, message.tab).then(sendResponse);
     return true;
   }
 
-  if (message?.type === "element-to-markdown:open-options") {
+  if (message?.type === "handpick:open-options") {
     chrome.runtime.openOptionsPage();
     return;
   }
 
-  if (message?.type === "element-to-markdown:open-report") {
+  if (message?.type === "handpick:open-report") {
     const openTab = () => chrome.tabs.create({ url: chrome.runtime.getURL("report.html") });
     const clip = (text) => (typeof text === "string" ? text.slice(0, 200000) : text);
     chrome.storage.session.set({ pendingBugReport: message.payload })

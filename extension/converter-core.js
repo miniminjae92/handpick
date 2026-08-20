@@ -1,5 +1,5 @@
 (() => {
-  if (window.ElementToMarkdown) return;
+  if (window.Handpick) return;
 
   const contentSelectors = [
     ".tui-editor-contents",
@@ -977,12 +977,12 @@
     return markdown.replace(/^---(?=\n|$)/, "***");
   }
 
-  function convertElementToMarkdown(element, options = {}) {
+  function convertToMarkdown(element, options = {}) {
     const markdown = convertWithTurndown(element, options) || normalizeBlankLines(toMarkdown(cleanupContent(element, options)));
     return disambiguateLeadingHr(markdown);
   }
 
-  function convertElementToPlainText(element, options = {}) {
+  function convertToPlainText(element, options = {}) {
     return normalizeBlankLines(toPlainText(cleanupContent(element, options)));
   }
 
@@ -1050,12 +1050,12 @@
     return `${safeName}.md`;
   }
 
-  window.ElementToMarkdown = {
+  window.Handpick = {
     contentSelectors,
     extractContent,
     sourceLabel,
-    convertElementToMarkdown,
-    convertElementToPlainText,
+    convertToMarkdown,
+    convertToPlainText,
     headingTextFromMarkdown,
     fileNameFromMarkdown
   };

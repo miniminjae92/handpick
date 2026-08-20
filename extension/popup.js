@@ -23,7 +23,7 @@ async function loadObsidianHint() {
 async function activate(mode) {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   const response = await chrome.runtime.sendMessage({
-    type: "element-to-markdown:activate-from-popup",
+    type: "handpick:activate-from-popup",
     mode,
     tab
   });

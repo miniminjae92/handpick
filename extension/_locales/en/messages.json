@@ -1,0 +1,30 @@
+{
+  "extName": {
+    "message": "Handpick: Copy any part of a page as Markdown or plain text",
+    "description": "Store title and chrome://extensions name. Max 75 characters."
+  },
+  "extShortName": {
+    "message": "Handpick",
+    "description": "Short name used where space is tight. Max 12 characters."
+  },
+  "extDescription": {
+    "message": "Point at anything on a page and get clean Markdown. Tables, code, math and callouts survive. Copy, save .md, or send to Obsidian.",
+    "description": "Store summary. Max 132 characters."
+  },
+  "actionTitle": {
+    "message": "Handpick",
+    "description": "Toolbar button tooltip."
+  },
+  "commandCopyMarkdown": {
+    "message": "Copy as Markdown",
+    "description": "Shown in chrome://extensions/shortcuts."
+  },
+  "commandSaveMarkdown": {
+    "message": "Save as Markdown",
+    "description": "Shown in chrome://extensions/shortcuts."
+  },
+  "commandCopyPlainText": {
+    "message": "Copy as plain text",
+    "description": "Shown in chrome://extensions/shortcuts."
+  }
+}
