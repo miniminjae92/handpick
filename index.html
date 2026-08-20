@@ -3,16 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Element to Markdown — 웹에서 고른 요소를 깨지지 않는 Markdown으로</title>
-  <meta name="description" content="웹페이지에서 원하는 요소만 골라 표, 코드, 수식까지 구조 그대로 Markdown으로 복사하거나 저장하는 Chrome 확장입니다.">
-  <meta property="og:title" content="Element to Markdown">
-  <meta property="og:description" content="웹페이지에서 고른 요소를 표, 코드, 수식까지 구조 그대로 Markdown으로. AI 답변을 노트로 옮길 때 특히 좋습니다.">
+  <title>Handpick — 화면에서 가리킨 것을, 그대로 읽을 수 있는 글로</title>
+  <meta name="description" content="화면에서 가리킨 부분만 표, 코드, 수식까지 구조 그대로 Markdown이나 일반 텍스트로 복사하고 저장하는 Chrome 확장입니다.">
+  <meta property="og:title" content="Handpick">
+  <meta property="og:description" content="화면에서 가리킨 것을 표, 코드, 수식까지 구조 그대로 Markdown으로. AI 답변을 노트로 옮길 때 특히 좋습니다.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://element-to-markdown.vercel.app/">
+  <meta property="og:url" content="https://gethandpick.vercel.app/">
   <link rel="icon" type="image/png" sizes="32x32" href="extension/icons/icon-32.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
   <style>
     :root {
       color-scheme: light dark;
@@ -27,6 +27,7 @@
       --color-muted: #E8F1F4;
       --color-muted-foreground: #47605C;
       --color-border: #99F6E4;
+      --color-border-strong: #0D9488;
       --color-ring: #0D9488;
       --space-1: 8px; --space-2: 16px; --space-3: 24px; --space-4: 40px;
       --space-5: 64px; --space-6: 96px;
@@ -45,6 +46,7 @@
         --color-muted: #142320;
         --color-muted-foreground: #9FB8B1;
         --color-border: #1E3733;
+        --color-border-strong: #3C7A71;
         --color-ring: #2DD4BF;
       }
     }
@@ -58,15 +60,19 @@
       margin: 0;
       background: var(--color-background);
       color: var(--color-foreground);
-      font-family: Inter, "Pretendard Variable", Pretendard, -apple-system,
+      font-family: "Pretendard Variable", Pretendard, -apple-system,
         BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Segoe UI", sans-serif;
       font-size: 16px;
-      line-height: 1.6;
+      line-height: 1.7;
+      /* 한글은 어절 중간에서 끊지 않는다. 긴 URL 같은 예외만 break-word가 받는다. */
+      word-break: keep-all;
+      overflow-wrap: break-word;
       -webkit-font-smoothing: antialiased;
     }
     .container { width: min(1080px, calc(100vw - 2 * var(--space-3))); margin: 0 auto; }
 
-    a { color: var(--color-primary); }
+    a { color: var(--color-primary); text-underline-offset: 3px; }
+    a:hover { text-decoration-thickness: 2px; }
     a:focus-visible, button:focus-visible, summary:focus-visible {
       outline: 2px solid var(--color-ring);
       outline-offset: 3px;
@@ -83,11 +89,13 @@
       transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
     }
     .btn svg { flex: none; }
+    .btn:active { transform: translateY(1px); }
+    @media (prefers-reduced-motion: reduce) { .btn:active { transform: none; } }
     .btn-cta { background: var(--color-accent); color: var(--color-on-accent); }
     .btn-cta:hover { background: color-mix(in srgb, var(--color-accent) 93%, black); }
     .btn-ghost {
       background: transparent; color: var(--color-foreground);
-      border-color: var(--color-border);
+      border-color: var(--color-border-strong);
     }
     .btn-ghost:hover { background: var(--color-muted); }
 
@@ -105,22 +113,33 @@
     .brand {
       display: inline-flex; align-items: center; gap: 10px;
       font-weight: 700; color: var(--color-foreground); text-decoration: none;
+      white-space: nowrap;
     }
     .brand img { width: 28px; height: 28px; border-radius: 7px; }
     nav.primary { margin-left: auto; display: flex; align-items: center; gap: var(--space-2); }
-    nav.primary a {
+    /* 내비 링크에만 건다. `nav.primary a`로 두면 명시도가 .btn-cta보다 높아
+       헤더 CTA 글자까지 회색으로 덮어써진다(주황 배경 위 대비 1.3:1). */
+    nav.primary a.nav-link {
       color: var(--color-muted-foreground); text-decoration: none; font-weight: 500;
       padding: 10px 10px; border-radius: 6px;
       transition: color 150ms ease;
     }
-    nav.primary a:hover { color: var(--color-foreground); }
+    nav.primary a.nav-link:hover { color: var(--color-foreground); }
     nav.primary .btn { min-height: 40px; padding: 8px 16px; }
+    .cta-short { display: none; }
     @media (max-width: 720px) {
       nav.primary a.nav-link { display: none; }
     }
+    @media (max-width: 480px) {
+      .site-inner { gap: var(--space-2); }
+      .brand { font-size: 0.9375rem; gap: 8px; }
+      .brand img { width: 24px; height: 24px; }
+      .cta-long { display: none; }
+      .cta-short { display: inline; }
+    }
 
     /* ---------- 히어로 ---------- */
-    .hero { padding: var(--space-6) 0 var(--space-5); text-align: center; }
+    .hero { padding: var(--space-5) 0; text-align: center; }
     .hero .badge {
       display: inline-flex; align-items: center; gap: 8px;
       border: 1px solid var(--color-border); border-radius: 999px;
@@ -160,7 +179,7 @@
       border: 1px solid var(--color-border); border-radius: calc(var(--radius) + 4px);
       overflow: hidden; background: var(--color-card);
     }
-    .demo-frame video { display: block; width: 100%; height: auto; }
+    .demo-frame video { display: block; width: 100%; height: auto; background: var(--color-muted); }
     .demo-caption {
       display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3);
       align-items: baseline; justify-content: space-between;
@@ -184,7 +203,7 @@
       background: var(--color-muted); color: var(--color-primary);
       margin-bottom: var(--space-2);
     }
-    .card h3 { margin: 0 0 6px; font-size: 1.0625rem; font-weight: 600; }
+    .card h3 { margin: 0 0 6px; font-size: 1.0625rem; line-height: 1.45; font-weight: 600; }
     .card p { margin: 0; color: var(--color-muted-foreground); font-size: 0.9375rem; }
     .card p code {
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -196,10 +215,15 @@
     .shortcuts {
       border: 1px solid var(--color-border); border-radius: var(--radius);
       background: var(--color-card);
-      padding: var(--space-4) var(--space-3);
-      display: flex; flex-wrap: wrap; gap: var(--space-3); justify-content: center; text-align: center;
+      padding: var(--space-4) 0;
+      display: grid; grid-template-columns: repeat(3, 1fr); text-align: center;
     }
-    .shortcut { min-width: 220px; }
+    .shortcut { padding: 0 var(--space-3); border-left: 1px solid var(--color-border); }
+    .shortcut:first-child { border-left: 0; }
+    @media (max-width: 720px) {
+      .shortcuts { grid-template-columns: 1fr; gap: var(--space-4); padding: var(--space-3) 0; }
+      .shortcut { border-left: 0; padding: 0 var(--space-2); }
+    }
     .shortcut .keys { display: flex; gap: 6px; justify-content: center; margin-bottom: 10px; }
     kbd {
       display: inline-flex; align-items: center; justify-content: center;
@@ -208,8 +232,8 @@
       background: var(--color-muted); color: var(--color-foreground);
       font-family: inherit; font-size: 0.9375rem; font-weight: 600;
     }
-    .shortcut .what { font-weight: 600; }
-    .shortcut .note { font-size: 0.875rem; color: var(--color-muted-foreground); }
+    .shortcut .what { margin: 0 0 4px; font-weight: 600; }
+    .shortcut .note { margin: 0; font-size: 0.875rem; color: var(--color-muted-foreground); }
 
     /* ---------- 프라이버시 ---------- */
     .privacy { border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); background: var(--color-card); }
@@ -222,7 +246,7 @@
 
     /* ---------- 마지막 CTA ---------- */
     .cta-final { text-align: center; }
-    .cta-final h2 { margin: 0 0 var(--space-1); font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; letter-spacing: -0.01em; }
+    .cta-final h2 { margin: 0 0 var(--space-1); font-size: clamp(1.5rem, 3vw, 2rem); line-height: 1.3; font-weight: 700; letter-spacing: -0.01em; }
     .cta-final p { margin: 0 0 var(--space-3); color: var(--color-muted-foreground); }
     .cta-final .actions { display: flex; flex-wrap: wrap; gap: var(--space-2); justify-content: center; }
 
@@ -251,15 +275,17 @@
 <body>
   <header class="site">
     <div class="container site-inner">
-      <a class="brand" href="#top" aria-label="Element to Markdown 홈">
+      <a class="brand" href="#top" aria-label="Handpick 홈">
         <img src="extension/icons/icon-48.png" alt="" width="28" height="28">
-        Element to Markdown
+        Handpick
       </a>
       <nav class="primary" aria-label="주 메뉴">
         <a class="nav-link" href="#demo">데모</a>
         <a class="nav-link" href="#features">기능</a>
         <a class="nav-link" href="#privacy">프라이버시</a>
-        <a class="btn btn-cta" href="https://chromewebstore.google.com/detail/element-to-markdown/hfdnljkfbofjphldkmgadhihdjknniag">Chrome에 추가</a>
+        <a class="btn btn-cta" href="https://chromewebstore.google.com/detail/hfdnljkfbofjphldkmgadhihdjknniag">
+          <span class="cta-long">Chrome에 추가</span><span class="cta-short">추가</span>
+        </a>
       </nav>
     </div>
   </header>
@@ -268,32 +294,32 @@
     <section class="hero container" aria-labelledby="hero-title">
       <p class="badge">Chrome 확장 · <strong>v0.2.0</strong></p>
       <h1 id="hero-title">웹에서 고른 부분을,<br><em>깨지지 않는 Markdown</em>으로</h1>
-      <p class="lede">AI 답변, 기술 문서, 블로그 글. 원하는 요소만 골라 표, 코드, 수식까지 구조 그대로 노트에 옮기세요.</p>
+      <p class="lede">AI 답변, 기술 문서, 블로그 글. 원하는 부분만 가리켜서 표, 코드, 수식까지 구조 그대로 노트에 옮기세요.</p>
       <div class="actions">
-        <a class="btn btn-cta" href="https://chromewebstore.google.com/detail/element-to-markdown/hfdnljkfbofjphldkmgadhihdjknniag">
+        <a class="btn btn-cta" href="https://chromewebstore.google.com/detail/hfdnljkfbofjphldkmgadhihdjknniag">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M21.17 8H12"/><path d="M3.95 6.06 8.54 14"/><path d="M10.88 21.94 15.46 14"/></svg>
           Chrome Web Store에서 추가
         </a>
         <a class="btn btn-ghost" href="#demo">동작 보기</a>
       </div>
-      <p class="fineprint">무료 · 계정 불필요 · 선택한 요소만 브라우저 안에서 처리</p>
+      <p class="fineprint">무료 · 계정 불필요 · 가리킨 부분만 브라우저 안에서 처리</p>
     </section>
 
     <section id="demo" class="container" aria-labelledby="demo-title">
       <div class="section-head reveal">
         <h2 id="demo-title">이렇게 동작합니다</h2>
-        <p>단축키를 누르고, 원하는 요소를 클릭하면 끝. 방향키로 범위를 넓히거나 좁힐 수 있습니다.</p>
+        <p>단축키를 누르고, 원하는 부분을 클릭하면 끝. 방향키로 범위를 넓히거나 좁힐 수 있습니다.</p>
       </div>
       <div class="demo-frame reveal">
         <video controls preload="metadata" playsinline
           aria-label="데모 영상: AI 답변에서 원하는 부분을 선택해 Markdown으로 복사하고 Obsidian에 저장하는 과정"
           src="https://github.com/user-attachments/assets/44630d9d-ac3e-4e6b-b1b1-058e1a8d0335">
-          <p>영상 대신 <a href="https://github.com/miniminjae92/element-to-markdown#demo">GitHub에서 데모 보기</a>로 확인하세요.</p>
+          <p>영상 대신 <a href="https://github.com/miniminjae92/handpick#demo">GitHub에서 데모 보기</a>로 확인하세요.</p>
         </video>
       </div>
       <div class="demo-caption reveal">
         <span>영상 내용: AI 답변에서 표가 포함된 부분을 선택해 Markdown으로 복사하고 노트에 붙여넣는 과정입니다.</span>
-        <span><a href="https://github.com/miniminjae92/element-to-markdown#demo">데모 더 보기</a> · <a href="demo.html">설치 없이 웹에서 변환 체험</a></span>
+        <span><a href="https://github.com/miniminjae92/handpick#demo">데모 더 보기</a> · <a href="demo.html">설치 없이 웹에서 변환 체험</a></span>
       </div>
     </section>
 
@@ -305,7 +331,7 @@
       <div class="grid">
         <article class="card reveal">
           <span class="icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></span>
-          <h3>필요한 요소만 정확히</h3>
+          <h3>필요한 부분만 정확히</h3>
           <p>페이지 전체가 아니라 원하는 한 덩어리만. 클릭으로 고르고 <code>↑</code> <code>↓</code>로 범위를 조절합니다.</p>
         </article>
         <article class="card reveal">
@@ -331,7 +357,7 @@
         <article class="card reveal">
           <span class="icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg></span>
           <h3>브라우저 밖으로 안 나감</h3>
-          <p>변환은 전부 로컬에서. 상시 권한 없이, 사용자가 실행한 탭의 선택한 요소만 처리합니다.</p>
+          <p>변환은 전부 로컬에서. 상시 권한 없이, 사용자가 실행한 탭의 가리킨 부분만 처리합니다.</p>
         </article>
       </div>
     </section>
@@ -380,7 +406,7 @@
             <div><strong>상시 권한 없음</strong><span>아이콘이나 단축키로 실행한 그 탭에서만 동작합니다.</span></div>
           </li>
         </ul>
-        <p class="more reveal"><a href="https://github.com/miniminjae92/element-to-markdown/blob/main/docs/privacy.md">개인정보 처리 문서 전문 보기</a></p>
+        <p class="more reveal"><a href="https://github.com/miniminjae92/handpick/blob/main/docs/privacy.md">개인정보 처리 문서 전문 보기</a></p>
       </div>
     </section>
 
@@ -388,8 +414,8 @@
       <h2 id="cta-title">다음 복사부터 편해지세요</h2>
       <p>추가하는 데 10초, 아끼는 건 복사할 때마다.</p>
       <div class="actions">
-        <a class="btn btn-cta" href="https://chromewebstore.google.com/detail/element-to-markdown/hfdnljkfbofjphldkmgadhihdjknniag">Chrome Web Store에서 추가</a>
-        <a class="btn btn-ghost" href="https://github.com/miniminjae92/element-to-markdown">GitHub에서 소스 보기</a>
+        <a class="btn btn-cta" href="https://chromewebstore.google.com/detail/hfdnljkfbofjphldkmgadhihdjknniag">Chrome Web Store에서 추가</a>
+        <a class="btn btn-ghost" href="https://github.com/miniminjae92/handpick">GitHub에서 소스 보기</a>
       </div>
     </section>
   </main>
@@ -398,13 +424,13 @@
     <div class="container footer-inner">
       <a class="brand" href="#top">
         <img src="extension/icons/icon-32.png" alt="" width="22" height="22">
-        Element to Markdown
+        Handpick
       </a>
       <nav aria-label="바닥글 메뉴">
-        <a href="https://chromewebstore.google.com/detail/element-to-markdown/hfdnljkfbofjphldkmgadhihdjknniag">Chrome Web Store</a>
-        <a href="https://github.com/miniminjae92/element-to-markdown">GitHub</a>
+        <a href="https://chromewebstore.google.com/detail/hfdnljkfbofjphldkmgadhihdjknniag">Chrome Web Store</a>
+        <a href="https://github.com/miniminjae92/handpick">GitHub</a>
         <a href="demo.html">웹 변환기</a>
-        <a href="https://github.com/miniminjae92/element-to-markdown/issues">버그 신고</a>
+        <a href="https://github.com/miniminjae92/handpick/issues">버그 신고</a>
       </nav>
       <p class="copyright">© 2026 Minjae Kang · MIT License</p>
     </div>
