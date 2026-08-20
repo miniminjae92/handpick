@@ -94,7 +94,7 @@ See [`docs/privacy.md`](docs/privacy.md) for details.
 
 ## Install
 
-Chrome Web Store link coming soon.
+[Install from the Chrome Web Store](https://chromewebstore.google.com/detail/hfdnljkfbofjphldkmgadhihdjknniag)
 
 ## Reporting issues
 
